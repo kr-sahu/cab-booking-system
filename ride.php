@@ -1219,6 +1219,11 @@ include 'layout/header.php';
         let isChatOpen = false;
         function toggleChat() { 
             // Switches the right panel between the placeholder and assistant chat views.
+            if (!isLoggedIn && !isChatOpen) {
+                window.location.href = 'auth.php?mode=login';
+                return;
+            }
+
             const chat = document.getElementById('chatInterface');
             const placeholder = document.getElementById('panelPlaceholder');
             
