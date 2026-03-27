@@ -1,6 +1,6 @@
     <!-- GLOBAL FOOTER: Site-wide footer with branding and legal declaration -->
     <footer class="mt-32 pt-16 border-t border-white/5 text-center px-6 pb-12">
-        <p class="text-gray-500 font-bold text-xs uppercase tracking-[0.5em]">&copy; 2026 Zuber. Developed by Project Team<br><span class="mt-2 block">Krushna &bull; Prasanya &bull; Sruti &bull; Trupti</span></p>
+        <p class="text-gray-500 font-bold text-xs uppercase tracking-[0.5em]">&copy; 2026 Zuber. Developed by Project Team</p>
     </footer>
 
     <script>
