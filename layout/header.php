@@ -1,13 +1,13 @@
 <?php
-// Start session for state management and include DB configuration
+// Bootstrap shared session and DB access.
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require __DIR__ . '/../api/db_connect.php';
 
-// Authentication state check
+// Shared auth state and fallback avatar used across public pages.
 $isLoggedIn = isset($_SESSION['user_id']);
-$userImage = 'https://cdn-icons-png.flaticon.com/512/847/847969.png'; // Default placeholder
+$userImage = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
 function normalizeUserImagePath($path) {
     $path = trim((string)$path);
@@ -22,13 +22,12 @@ function normalizeUserImagePath($path) {
     return '/cab_app/' . ltrim($path, '/');
 }
 
-// Fetch user-specific data if authenticated
+// Refresh the latest user name and avatar when a user is logged in.
 if ($isLoggedIn) {
     $uid = $_SESSION['user_id'];
     $u_res = $conn->query("SELECT * FROM users WHERE id = $uid");
     if ($u_res && $u_data = $u_res->fetch_assoc()) {
         $userImage = !empty($u_data['profile_image']) ? normalizeUserImagePath($u_data['profile_image']) : $userImage;
-        // Sync the latest name from DB to session for consistent display
         $_SESSION['user_name'] = $u_data['fullname'];
     }
 }
@@ -39,19 +38,16 @@ if ($isLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zuber - Ride, Drive, and More</title>
-    <!-- CSS Frameworks and Mapping Libraries (Leaflet.js) -->
+    <!-- Shared vendor assets -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Leaflet Routing Machine for trip path calculation -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <!-- Typography and Iconography -->
     <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
-        // Custom Tailwind theme extensions
         tailwind.config = {
             theme: {
                 extend: {
@@ -125,7 +121,7 @@ if ($isLoggedIn) {
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 overflow-x-hidden">
 
-    <!-- GLOBAL NAVIGATION: Clean dashboard-like white header -->
+    <!-- Global navigation -->
     <nav class="glass-header px-6 md:px-12 py-3 flex justify-center sticky top-0 z-[5000]">
         <div class="w-full max-w-[1400px] flex items-center justify-between">
             <div class="flex items-center gap-12">
@@ -156,7 +152,6 @@ if ($isLoggedIn) {
                             <i class="fas fa-chevron-down text-[10px] text-slate-400 pointer-events-none"></i>
                         </div>
                         
-                        <!-- Dropdown Menu -->
                         <div class="profile-dropdown">
                             <a href="/cab_app/history.php" class="dropdown-item">
                                 <i class="fas fa-history text-slate-400 w-4"></i>
@@ -185,7 +180,6 @@ if ($isLoggedIn) {
             dropdown.classList.toggle('show');
         }
 
-        // Close dropdown when clicking outside
         window.addEventListener('click', function(e) {
             const dropdown = document.querySelector('.profile-dropdown');
             if (dropdown && dropdown.classList.contains('show')) {

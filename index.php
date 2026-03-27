@@ -1,16 +1,14 @@
 <?php 
-// Include the global header and navigation bar
 include 'layout/header.php'; 
 ?>
 
-    <!-- HERO SECTION: Clean dashboard-like layout -->
+    <!-- Hero -->
     <main class="min-h-[85vh] flex items-center justify-center px-6 py-8 md:px-12 md:py-12 relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(248,113,113,0.12),_transparent_28%),linear-gradient(180deg,_#f8fbff_0%,_#f8fafc_100%)]">
         <div class="absolute top-20 left-[8%] w-44 h-44 rounded-full bg-blue-200/30 blur-3xl pointer-events-none"></div>
         <div class="absolute bottom-16 right-[10%] w-52 h-52 rounded-full bg-rose-200/30 blur-3xl pointer-events-none"></div>
 
         <div class="max-w-[1400px] w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
             
-            <!-- Left Column: Typography and actions -->
             <div class="space-y-8 pr-0 lg:pr-10 relative z-10">
                 <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-white/80 border border-primary/20 rounded-full shadow-sm backdrop-blur-sm">
                     <span class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_0_6px_rgba(255,75,75,0.12)]"></span>
@@ -32,7 +30,6 @@ include 'layout/header.php';
                     <div class="px-4 py-2 rounded-full bg-white/85 border border-slate-200 shadow-sm">Smooth Booking</div>
                 </div>
                 
-                <!-- Action Cards -->
                 <div class="flex flex-col sm:flex-row gap-4 pt-1">
                     <a href="ride.php" class="flex-1 bg-white/92 border border-slate-200 p-5 rounded-[1.4rem] shadow-[0_14px_30px_-18px_rgba(15,23,42,0.18)] hover:shadow-[0_24px_45px_-22px_rgba(255,75,75,0.35)] hover:-translate-y-1 hover:border-primary/30 transition-all group flex items-center gap-4 backdrop-blur-sm">
                         <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
@@ -58,7 +55,6 @@ include 'layout/header.php';
                 </div>
             </div>
 
-            <!-- Right Column: Visual Container -->
             <div class="relative z-10 w-full h-full flex items-center justify-center lg:justify-end">
                 <div class="relative w-full max-w-[540px]">
                     <div class="absolute -inset-3 bg-gradient-to-br from-white/70 to-primary/5 rounded-[2.7rem] blur-sm"></div>
@@ -87,6 +83,5 @@ include 'layout/header.php';
     </main>
 
 <?php 
-// Include the global footer with site links and copyright
 include 'layout/footer.php'; 
 ?>

@@ -1,5 +1,4 @@
 <?php 
-// Include the global header for navigation and consistent UI
 include '../layout/header.php'; 
 ?>
 
@@ -177,10 +176,9 @@ include '../layout/header.php';
         }
     </style>
 
-    <!-- DRIVE SECTION: Onboarding page for prospective drivers -->
+    <!-- Driver onboarding -->
     <section id="drive" class="driver-stage py-14 px-6 md:px-10 lg:px-14 min-h-screen bg-gradient-to-br from-slate-100 via-white to-rose-50 text-slate-900">
         <div class="max-w-[1320px] mx-auto grid lg:grid-cols-[0.9fr_1.02fr] gap-8 xl:gap-10 items-start relative z-[1]">
-            <!-- Informational Column: Highlights benefits of driving with Zuber -->
             <div class="driver-copy-card lg:sticky lg:top-28">
                 <div class="driver-pill">
                     <span>Join Our Team</span>
@@ -204,9 +202,7 @@ include '../layout/header.php';
                 </div>
             </div>
 
-            <!-- Form Column: Multi-step registration and KYC process -->
             <div class="driver-form-shell text-black overflow-hidden">
-                <!-- STEP 1: Driver account creation -->
                 <div id="driverStep1" class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div>
                         <h3 class="driver-panel-title text-3xl font-black">Create Driver Account</h3>
@@ -226,7 +222,6 @@ include '../layout/header.php';
                     <p class="text-center text-[11px] text-slate-400 px-4">Already have a driver account? <a href="login.php" class="text-primary font-bold hover:underline">Login here</a></p>
                 </div>
 
-                <!-- STEP 2: KYC (Know Your Customer) and personal documentation -->
                 <div id="driverStep2" class="hidden space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div class="flex justify-between items-start gap-4">
                         <div>
@@ -236,7 +231,6 @@ include '../layout/header.php';
                         <button onclick="prevDriverStep()" class="text-slate-400 hover:text-black transition uppercase text-[11px] font-bold tracking-[0.18em] outline-none pt-2">Back</button>
                     </div>
 
-                    <!-- Scrollable area for extensive form fields -->
                     <div class="driver-kyc-scroll overflow-y-auto no-scrollbar pr-1">
                         <div class="driver-kyc-grid grid grid-cols-1 md:grid-cols-2">
                             <div class="space-y-2">
@@ -318,8 +312,8 @@ include '../layout/header.php';
         </div>
     </section>
 
-    <!-- CLIENT-SIDE LOGIC: Multi-step navigation and form handling -->
     <script>
+        // Step navigation
         function prevDriverStep() {
             document.getElementById('driverStep2').classList.add('hidden');
             document.getElementById('driverStep1').classList.remove('hidden');
@@ -337,6 +331,7 @@ include '../layout/header.php';
             document.getElementById('driverStep2').classList.remove('hidden');
         }
 
+        // Image preview
         function updatePhotoLabelDrive(input) {
             const label = document.getElementById('photoLabelDrive');
             const preview = document.getElementById('photoPreviewDrive');
@@ -353,6 +348,7 @@ include '../layout/header.php';
             }
         }
 
+        // Custom gender dropdown
         function toggleGenderTray() {
             const tray = document.getElementById('genderOptionsTray');
             if (tray.classList.contains('hidden')) {
@@ -378,6 +374,7 @@ include '../layout/header.php';
             toggleGenderTray();
         }
 
+        // Form submission
         async function submitApplication() {
             const btn = document.getElementById('submitDriverApp');
             const contactInput = document.getElementById('driverContact');
@@ -467,6 +464,5 @@ include '../layout/header.php';
     </script>
 
 <?php 
-// Include the global footer
 include '../layout/footer.php'; 
 ?>
