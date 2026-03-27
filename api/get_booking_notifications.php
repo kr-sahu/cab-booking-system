@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 require 'db_connect.php';
 session_start();
 
+// Guests have no booking notifications.
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
         "success" => true,
@@ -12,25 +13,27 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = (int) $_SESSION['user_id'];
-
-$sql = "SELECT id,
-               CASE WHEN status = 'accepted' THEN 'confirmed' ELSE status END AS status,
-               pickup_location,
-               destination,
-               created_at,
-               driver_name,
-               driver_contact,
-               cab_model,
-               cab_number
-        FROM bookings
-        WHERE user_id = {$userId}
-          AND status IN ('accepted', 'confirmed')
-        ORDER BY id DESC
-        LIMIT 10";
+$sql = "
+    SELECT id,
+           CASE WHEN status = 'accepted' THEN 'confirmed' ELSE status END AS status,
+           pickup_location,
+           destination,
+           created_at,
+           driver_name,
+           driver_contact,
+           cab_model,
+           cab_number
+    FROM bookings
+    WHERE user_id = {$userId}
+      AND status IN ('accepted', 'confirmed')
+    ORDER BY id DESC
+    LIMIT 10
+";
 
 $result = $conn->query($sql);
 $notifications = [];
 
+// Normalize confirmed and accepted rides into a single notification shape.
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $notifications[] = [

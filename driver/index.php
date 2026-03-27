@@ -3,10 +3,9 @@ include 'inc/header.php';
 include 'inc/sidebar.php';
 ?>
 
-    <!-- MAIN CONTENT AREA -->
+    <!-- Driver dashboard -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
         
-        <!-- DASHBOARD HEADER -->
         <div class="px-8 py-6 bg-white border-b border-gray-100 flex items-center justify-between">
             <div>
                 <h2 class="text-xl font-black text-gray-800">Dashboard</h2>
@@ -21,14 +20,11 @@ include 'inc/sidebar.php';
             </div>
         </div>
 
-        <!-- SCROLLABLE CONTENT -->
         <div class="flex-1 overflow-y-auto p-4 lg:p-10 bg-[#F8FAFC]">
             
             <div class="max-w-[1400px] mx-auto space-y-8">
                 
-                <!-- SUMMARY STATS OVERVIEW -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Stat: Earnings -->
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center gap-5">
                         <div class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-wallet"></i></div>
                         <div>
@@ -37,7 +33,6 @@ include 'inc/sidebar.php';
                         </div>
                     </div>
                     
-                    <!-- Stat: Trips -->
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center gap-5">
                         <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-route"></i></div>
                         <div>
@@ -46,7 +41,6 @@ include 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <!-- Stat: Status Display -->
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center gap-5 relative group transition-all hover:border-primary/20">
                         <div id="statusIconBg" class="w-14 h-14 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center text-xl shadow-inner transition-colors duration-500"><i class="fas fa-signal"></i></div>
                         <div class="flex-1">
@@ -59,7 +53,6 @@ include 'inc/sidebar.php';
                         <button onclick="toggleStatus()" title="Change Status" class="w-10 h-10 bg-gray-50 text-gray-300 rounded-lg flex items-center justify-center hover:bg-black hover:text-white transition-all"><i class="fas fa-power-off text-xs"></i></button>
                     </div>
 
-                    <!-- Stat: Rating Placeholder -->
                     <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center gap-5">
                         <div class="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-star"></i></div>
                         <div>
@@ -69,10 +62,8 @@ include 'inc/sidebar.php';
                     </div>
                 </div>
 
-                <!-- MAIN WORKSPACE: ACTIVE ZONE -->
                 <div class="grid lg:grid-cols-3 gap-8">
                     
-                    <!-- LEFT COLUMN: LIVE MANAGEMENT (2/3) -->
                     <div class="lg:col-span-2 space-y-6">
                         <div class="flex items-center justify-between px-4">
                             <h3 class="text-[13px] font-black text-gray-800 uppercase tracking-widest flex items-center gap-3">
@@ -84,9 +75,7 @@ include 'inc/sidebar.php';
                             </div>
                         </div>
 
-                        <!-- RIDE MANAGEMENT CONTAINER -->
                         <div id="rideContainer" class="min-h-[400px]">
-                            <!-- Dynamic Content (Request or Active Trip) -->
                             <div class="bg-white rounded-[3rem] p-16 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
                                 <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-100 text-3xl mb-8 border border-gray-50 shadow-inner"><i class="fas fa-radar"></i></div>
                                 <h4 class="text-2xl font-black text-gray-800">No Active Data</h4>
@@ -95,14 +84,12 @@ include 'inc/sidebar.php';
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: RECENT HISTORY & ACTIVITY (1/3) -->
                     <div class="lg:col-span-1 space-y-6">
                         <h3 class="text-[13px] font-black text-gray-800 uppercase tracking-widest flex items-center gap-3 px-4">
                             <i class="fas fa-clock-rotate-left"></i> Recent Activity
                         </h3>
 
                         <div id="recentTripsContainer" class="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-4 h-full min-h-[500px]">
-                            <!-- Recent Trips List (Dynamic) -->
                             <div class="text-center py-20 px-8">
                                 <i class="fas fa-history text-3xl text-gray-100 mb-6"></i>
                                 <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">No Recent Activity</p>
@@ -114,7 +101,6 @@ include 'inc/sidebar.php';
             </div>
         </div>
 
-        <!-- HIDDEN MAP FOR ROUTE SYNCHRONIZATION -->
         <div id="map" class="hidden h-0 w-0 opacity-0 pointer-events-none"></div>
 
     </main>
@@ -123,7 +109,7 @@ include 'inc/sidebar.php';
         let map, routingControl;
         let checkInterval;
 
-        // Extend the header's status function to handle dashboard elements
+        // Mirror the shared status state into dashboard-specific UI.
         const originalUpdateStatusUI = updateStatusUI;
         updateStatusUI = function() {
             if (typeof originalUpdateStatusUI === 'function') originalUpdateStatusUI();
@@ -378,7 +364,6 @@ include 'inc/sidebar.php';
             const mapEl = document.getElementById('activeMap');
             if(!mapEl) return;
             
-            // Re-init map for active view if not already
             if (map) map.remove();
             map = L.map('activeMap', { zoomControl: false }).setView([20.5937, 78.9629], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);

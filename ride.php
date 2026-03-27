@@ -1,15 +1,10 @@
 <?php 
-/**
- * RIDE PAGE
- * Main interface for map interaction, route calculation, and booking rides via the assistant.
- */
 include 'layout/header.php'; 
 ?>
 
-    <!-- Main Section: Map and Basic UI -->
+    <!-- Ride workspace -->
     <main class="py-16 mx-auto px-6 md:px-12 bg-slate-100 min-h-[85vh] relative flex flex-col justify-center">
         <div class="max-w-[1400px] w-full mx-auto relative flex-1 flex flex-col pt-4">
-            <!-- Title and Status indicators -->
             <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
                 <div>
                     <div class="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full mb-3">
@@ -29,10 +24,8 @@ include 'layout/header.php';
                 </div>
             </div>
 
-            <!-- Main Layout: Grid separating Map from Panel -->
             <div class="grid lg:grid-cols-3 gap-6 flex-1 min-h-[600px]">
                 
-                <!-- Left: Map Container -->
                 <div class="lg:col-span-2 relative bg-white rounded-[2rem] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden border border-slate-200 min-h-[600px] flex flex-col">
                     <?php if(!$isLoggedIn): ?>
                         <div class="absolute inset-0 z-[2000] bg-white/60 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center rounded-[2rem]">
@@ -47,19 +40,15 @@ include 'layout/header.php';
 
                     <div id="map" class="w-full h-full flex-1 z-0"></div>
 
-                    <!-- Overlay Map Text -->
                     <div class="absolute top-6 right-6 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-xl shadow-sm border border-slate-200 z-[1000] pointer-events-none fade-in">
                         <p class="text-[11px] font-bold text-slate-600 flex items-center gap-2"><i class="fas fa-location-dot text-primary"></i> Select your pickup & drop location</p>
                     </div>
 
-                    <!-- Floating Route Instructions Sidebar -->
                     <div id="routeDetails" class="hidden absolute top-6 left-6 w-[320px] bg-white rounded-2xl shadow-xl z-[1000] overflow-hidden flex flex-col max-h-[500px] animate-in slide-in-from-left-4 fade-in duration-500 border border-slate-100"></div>
                 </div>
 
-                <!-- Right: Assistant Sidebar Panel -->
                 <div class="lg:col-span-1 flex flex-col relative h-[600px]">
                     
-                    <!-- Placeholder Instruction State -->
                     <div id="panelPlaceholder" class="absolute inset-0 bg-white rounded-[2rem] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-200 p-8 flex flex-col items-center justify-center text-center transition-all duration-300 z-10">
                         <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-3xl mb-5 shadow-inner border border-slate-100">
                             <i class="fas fa-map-marked-alt"></i>
@@ -87,7 +76,6 @@ include 'layout/header.php';
                         </button>
                     </div>
 
-                    <!-- Active Chat UI State -->
                     <div id="chatInterface" class="absolute inset-0 bg-white rounded-[2rem] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 z-0 opacity-0 pointer-events-none translate-x-4">
                         <div class="bg-white p-5 text-slate-800 flex justify-between items-center border-b border-slate-100 relative z-10 shadow-sm">
                             <div class="flex items-center gap-3">
@@ -147,7 +135,7 @@ include 'layout/header.php';
         </div>
     </main>
 
-    <!-- Payment Summary Modal -->
+    <!-- Payment modal -->
     <div id="paymentModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-[450px] p-8 rounded-[2rem] shadow-2xl border border-slate-100 chat-slide-up relative">
             <button onclick="closePayment()" class="absolute top-6 right-6 text-slate-400 hover:bg-slate-100 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"><i class="fas fa-times"></i></button>
@@ -159,7 +147,6 @@ include 'layout/header.php';
                 <p class="text-slate-500 mt-1 text-sm font-medium">Verify your ride before confirming</p>
             </div>
             <div id="paymentDetails" class="space-y-3 mb-8">
-                <!-- Cash Option -->
                 <div id="payCashBtn" onclick="selectPayment('cash')" class="bg-white border-2 border-primary shadow-sm p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-slate-50 text-slate-600 rounded-lg border border-slate-100 flex items-center justify-center shadow-inner"><i class="fas fa-money-bill-wave"></i></div>
@@ -168,7 +155,6 @@ include 'layout/header.php';
                     <div id="cashCheck" class="text-primary text-lg"><i class="fas fa-check-circle"></i></div>
                 </div>
 
-                <!-- Card Option -->
                 <div id="payCardBtn" onclick="selectPayment('card')" class="bg-white border border-slate-200 shadow-sm p-4 rounded-xl flex items-center justify-between cursor-pointer hover:border-slate-300 transition-all">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-slate-50 text-slate-600 rounded-lg border border-slate-100 flex items-center justify-center shadow-inner"><i class="fas fa-credit-card"></i></div>
@@ -177,7 +163,6 @@ include 'layout/header.php';
                     <div id="cardCheck" class="text-slate-200 text-lg"><i class="far fa-circle"></i></div>
                 </div>
 
-                <!-- Card Details Input -->
                 <div id="cardFields" class="hidden mt-2 p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                     <input type="text" id="cardNumber" placeholder="Card Number (0000 0000 0000)" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-[13px] outline-none focus:border-primary font-medium text-slate-700" maxlength="14">
                     <div class="grid grid-cols-2 gap-3">
@@ -196,7 +181,7 @@ include 'layout/header.php';
         </div>
     </div>
 
-    <!-- Assigned Driver / Success Modal -->
+    <!-- Assigned driver modal -->
     <div id="driverModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-[420px] p-0 rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden chat-slide-up relative">
             <div class="bg-slate-800 p-8 text-white relative">
