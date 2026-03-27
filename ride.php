@@ -1152,7 +1152,6 @@ include 'layout/header.php';
                 console.error("Route calculation error:", error);
                 removeTyping(routeTyping);
                 return renderFallbackRoute();
-                addMsg("⚠️ <b>Failed to calculate route.</b> Please try again.", 'bot');
             }
         }
 

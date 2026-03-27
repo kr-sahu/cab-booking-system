@@ -328,20 +328,13 @@ include '../layout/header.php';
         function continueToKyc() {
             const email = document.getElementById('driverEmail').value.trim();
             const pass = document.getElementById('driverPass').value;
-            const continueBtn = document.getElementById('driverContinueBtn');
 
             if(!email || !pass) { alert("Please enter both Gmail and Password to continue."); return; }
             if(!/@gmail\.com$/i.test(email)) { alert("Email must end with @gmail.com."); return; }
             if(pass.length < 6 || pass.length > 32) { alert("Password length must be between 6 and 32 characters."); return; }
 
-            continueBtn.disabled = true;
-            continueBtn.innerText = "Continuing...";
-
             document.getElementById('driverStep1').classList.add('hidden');
             document.getElementById('driverStep2').classList.remove('hidden');
-
-            continueBtn.disabled = false;
-            continueBtn.innerText = "Continue to KYC";
         }
 
         function updatePhotoLabelDrive(input) {
