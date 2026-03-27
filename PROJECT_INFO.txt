@@ -1,0 +1,65 @@
+========================================================================
+             ZUBER CAB APP - PROJECT INFORMATION
+========================================================================
+
+------------------------------------------------------------------------
+[ DATABASE CONFIGURATION ]
+------------------------------------------------------------------------
+Database Name: cab_booking
+SQL File: database.sql (located in root directory)
+Connection Config: api/db_connect.php
+Recommended PHP Version: 7.4, 8.0, or 8.1+
+
+------------------------------------------------------------------------
+[ SYSTEM ACCESS & CREDENTIALS ]
+------------------------------------------------------------------------
+
+1. ADMIN PANEL (The Operations Hub)
+   URL:      http://localhost/cab_app/admin/login.php
+   Username: admin
+   Password: Password@123
+   * Use this to approve drivers, manage cabs, and view bookings.
+
+2. DRIVER PORTAL (The Partner Interface)
+   URL:      http://localhost/cab_app/driver/login.php
+   * Access Workflow:
+     a) Partner must apply via http://localhost/cab_app/driver/apply.php
+     b) Admin must approve the application in the Admin Panel.
+     c) Driver can then login using their registered Email/Password.
+
+3. CUSTOMER PORTAL (Front-end)
+   URL:      http://localhost/cab_app/
+   * Users can register/login via the floating "Account" or "Sign up" buttons.
+
+------------------------------------------------------------------------
+[ SETUP & INSTALLATION ]
+------------------------------------------------------------------------
+1. Import 'database.sql' into your MySQL server.
+2. Configure database credentials in 'api/db_connect.php'.
+3. Ensure the 'uploads/' directory has read/write permissions.
+4. Internet access is required for CDN-based libraries (Tailwind, Leaflet).
+
+------------------------------------------------------------------------
+[ CORE SYSTEM FEATURES ]
+------------------------------------------------------------------------
+* AI-Powered Booking: Conversational assistant-led ride booking flow.
+* Interactive Mapping: Leaflet-based real-time route visualization.
+* Driver Dashboard: Dedicated portal for ride acceptance and routing.
+* KYC Vetting System: Industrial-grade driver vetting and document review.
+* Earnings Analytics: Real-time revenue tracking for driver partners.
+* Route Analytics: Automated distance calculation and fare estimation.
+* User Profiles: Dynamic avatars and personal detail management.
+* Session Persistence: Persistent state management for consistent usage.
+
+------------------------------------------------------------------------
+[ TECHNOLOGY STACK ]
+------------------------------------------------------------------------
+Backend: PHP & MySQL
+Frontend: HTML5, Vanilla JavaScript, Tailwind CSS (CDN)
+Mapping: Leaflet.js & Routing Machine
+Iconography: FontAwesome 6+
+Design: Modern Glassmorphism & Responsive Layouts
+
+========================================================================
+   Developed for Portfolio & Educational Demonstration - 2026
+========================================================================
