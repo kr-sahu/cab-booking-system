@@ -66,6 +66,12 @@ It includes separate panels for users, drivers, and admin to manage the complete
 - `/layout` – Common UI components  
 
 ---
+## 📄 Module Documentation
+
+- Driver Portal: /driver/README.md  
+- Admin Panel: /admin/README.md  
+
+---
 
 ## 👩‍💻 Author
 
