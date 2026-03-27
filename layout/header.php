@@ -9,12 +9,25 @@ require __DIR__ . '/../api/db_connect.php';
 $isLoggedIn = isset($_SESSION['user_id']);
 $userImage = 'https://cdn-icons-png.flaticon.com/512/847/847969.png'; // Default placeholder
 
+function normalizeUserImagePath($path) {
+    $path = trim((string)$path);
+    if ($path === '') {
+        return '';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $path) || str_starts_with($path, 'data:')) {
+        return $path;
+    }
+
+    return '/cab_app/' . ltrim($path, '/');
+}
+
 // Fetch user-specific data if authenticated
 if ($isLoggedIn) {
     $uid = $_SESSION['user_id'];
     $u_res = $conn->query("SELECT * FROM users WHERE id = $uid");
     if ($u_res && $u_data = $u_res->fetch_assoc()) {
-        $userImage = !empty($u_data['profile_image']) ? $u_data['profile_image'] : $userImage;
+        $userImage = !empty($u_data['profile_image']) ? normalizeUserImagePath($u_data['profile_image']) : $userImage;
         // Sync the latest name from DB to session for consistent display
         $_SESSION['user_name'] = $u_data['fullname'];
     }
