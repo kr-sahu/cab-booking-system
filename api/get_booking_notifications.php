@@ -13,11 +13,19 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = (int) $_SESSION['user_id'];
 
-$sql = "SELECT id, status, pickup_location, destination, created_at, driver_name, driver_contact, cab_model, cab_number
+$sql = "SELECT id,
+               CASE WHEN status = 'accepted' THEN 'confirmed' ELSE status END AS status,
+               pickup_location,
+               destination,
+               created_at,
+               driver_name,
+               driver_contact,
+               cab_model,
+               cab_number
         FROM bookings
         WHERE user_id = {$userId}
-          AND status IN ('accepted', 'confirmed', 'completed')
-        ORDER BY created_at DESC
+          AND status IN ('accepted', 'confirmed')
+        ORDER BY id DESC
         LIMIT 10";
 
 $result = $conn->query($sql);

@@ -6,7 +6,11 @@ include 'inc/sidebar.php';
 $where = "WHERE 1=1";
 if (isset($_GET['status']) && !empty($_GET['status'])) {
     $status = $_GET['status'];
-    $where .= " AND b.status = '$status'";
+    if ($status === 'confirmed') {
+        $where .= " AND b.status IN ('accepted', 'confirmed')";
+    } else {
+        $where .= " AND b.status = '$status'";
+    }
 }
 
 $bookings = $conn->query("SELECT b.*, u.fullname as customer 
@@ -54,6 +58,7 @@ $bookings = $conn->query("SELECT b.*, u.fullname as customer
             <tbody>
                 <?php if ($bookings && $bookings->num_rows > 0): ?>
                     <?php while($row = $bookings->fetch_assoc()): ?>
+                        <?php $displayStatus = ($row['status'] === 'accepted') ? 'confirmed' : $row['status']; ?>
                         <tr>
                             <td>#<?php echo $row['id']; ?></td>
                             <td><?php echo htmlspecialchars($row['customer'] ?? 'Guest'); ?></td>
@@ -61,9 +66,9 @@ $bookings = $conn->query("SELECT b.*, u.fullname as customer
                             <td>₹<?php echo number_format($row['fare'], 2); ?></td>
                             <td>
                                 <span class="badge badge-<?php 
-                                    echo $row['status'] == 'completed' ? 'success' : ($row['status'] == 'pending' ? 'warning' : ($row['status'] == 'confirmed' ? 'primary' : 'danger')); 
+                                    echo $displayStatus == 'completed' ? 'success' : ($displayStatus == 'pending' ? 'warning' : ($displayStatus == 'confirmed' ? 'primary' : 'danger')); 
                                 ?>">
-                                    <?php echo ucfirst($row['status']); ?>
+                                    <?php echo ucfirst($displayStatus); ?>
                                 </span>
                             </td>
                             <td><?php echo date('M d, Y', strtotime($row['created_at'])); ?></td>

@@ -14,7 +14,17 @@ $userId = $_SESSION['user_id'];
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 0;
 $limitSql = $limit > 0 ? " LIMIT $limit" : "";
 
-$sql = "SELECT id, pickup_location, destination, fare, distance, status, created_at, driver_name, driver_contact, cab_model, cab_number 
+$sql = "SELECT id,
+               pickup_location,
+               destination,
+               fare,
+               distance,
+               CASE WHEN status = 'accepted' THEN 'confirmed' ELSE status END AS status,
+               created_at,
+               driver_name,
+               driver_contact,
+               cab_model,
+               cab_number 
         FROM bookings 
         WHERE user_id = '$userId' 
         ORDER BY created_at DESC" . $limitSql;

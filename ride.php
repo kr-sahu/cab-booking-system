@@ -579,6 +579,41 @@ include 'layout/header.php';
             });
         }
 
+        let bookingNotificationPoller = null;
+        const bookingNotificationSeenKey = 'cab_app_seen_booking_notifications';
+
+        function getSeenBookingNotificationIds() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(bookingNotificationSeenKey) || '[]');
+                return Array.isArray(parsed) ? parsed.map(id => Number(id)) : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function markBookingNotificationSeen(id) {
+            if (!id) return;
+
+            const seen = new Set(getSeenBookingNotificationIds());
+            seen.add(Number(id));
+            localStorage.setItem(bookingNotificationSeenKey, JSON.stringify(Array.from(seen).slice(-30)));
+        }
+
+        function openAssignedDriverModal(booking) {
+            const modal = document.getElementById('driverModal');
+            if (!modal || !booking) return;
+
+            document.getElementById('assignedPickup').textContent = booking.pickup_location || '---';
+            document.getElementById('assignedDest').textContent = booking.destination || '---';
+            document.getElementById('assignedDriverName').textContent = booking.driver_name || 'Assigned Driver';
+            document.getElementById('assignedCabModel').textContent = booking.cab_model || 'Assigned Cab';
+            document.getElementById('assignedCabNumber').textContent = booking.cab_number || '---';
+            document.getElementById('assignedDriverContact').innerHTML = `<i class="fas fa-phone-alt text-[10px]"></i> ${booking.driver_contact || 'N/A'}`;
+            document.getElementById('bookingOTP').textContent = String(booking.id || '').padStart(4, '0').slice(-4);
+
+            modal.classList.remove('hidden');
+        }
+
         async function loadBookingNotifications() {
             const box = document.getElementById('notificationBox');
             const badge = document.getElementById('notificationBadge');
@@ -605,8 +640,11 @@ include 'layout/header.php';
                     return;
                 }
 
+                const seenNotificationIds = new Set(getSeenBookingNotificationIds());
+                const newestUnseenNotification = data.notifications.find(item => !seenNotificationIds.has(Number(item.id)));
+
                 box.innerHTML = data.notifications.map(item => `
-                    <div class="bg-white border border-slate-200 rounded-[1.15rem] p-4 shadow-sm">
+                    <div class="bg-white border border-slate-200 rounded-[1.15rem] p-4 shadow-sm" data-notification-id="${item.id}">
                         <div class="flex items-center justify-between gap-3 mb-3">
                             <div class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -624,7 +662,19 @@ include 'layout/header.php';
                     </div>
                 `).join('');
 
-                if (badge) badge.classList.remove('hidden');
+                if (badge) {
+                    if (newestUnseenNotification) {
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+
+                if (newestUnseenNotification) {
+                    openAssignedDriverModal(newestUnseenNotification);
+                    markBookingNotificationSeen(newestUnseenNotification.id);
+                    if (badge) badge.classList.add('hidden');
+                }
             } catch (error) {
                 console.error('Notification error:', error);
                 box.innerHTML = `
@@ -644,7 +694,11 @@ include 'layout/header.php';
             if (isNotificationView) {
                 chatView.classList.add('hidden');
                 notificationView.classList.remove('hidden');
-                loadBookingNotifications();
+                loadBookingNotifications().then(() => {
+                    document.querySelectorAll('#notificationBox [data-notification-id]').forEach(node => {
+                        markBookingNotificationSeen(node.dataset.notificationId);
+                    });
+                });
             } else {
                 notificationView.classList.add('hidden');
                 chatView.classList.remove('hidden');
@@ -995,6 +1049,12 @@ include 'layout/header.php';
             setupPickupTimeFormatting();
             document.getElementById('pickupDate')?.addEventListener('change', syncPickupScheduleMessage);
             document.getElementById('pickupTime')?.addEventListener('change', syncPickupScheduleMessage);
+
+            if (isLoggedIn) {
+                loadBookingNotifications();
+                if (bookingNotificationPoller) clearInterval(bookingNotificationPoller);
+                bookingNotificationPoller = setInterval(loadBookingNotifications, 10000);
+            }
             
             const params = new URLSearchParams(window.location.search);
             if(params.get('pickup')) pickupLoc = decodeURIComponent(params.get('pickup'));
