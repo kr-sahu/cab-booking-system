@@ -13,10 +13,10 @@ include 'layout/header.php';
             <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-6">
                 <div>
                     <div class="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full mb-3">
-                        <span class="text-[12px] font-bold text-primary uppercase tracking-widest">Request a Ride</span>
+                        <span id="pageEyebrow" class="text-[12px] font-bold text-primary uppercase tracking-widest">Request a Ride</span>
                     </div>
-                    <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">Where to?</h2>
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
+                    <h2 id="pageHeading" class="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">Where to?</h2>
+                    <p id="pageSubheading" class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                         Use Zuber Assistant below to book your ride
                     </p>
@@ -64,8 +64,8 @@ include 'layout/header.php';
                         <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-3xl mb-5 shadow-inner border border-slate-100">
                             <i class="fas fa-map-marked-alt"></i>
                         </div>
-                        <h4 class="text-[22px] font-extrabold text-slate-800 mb-2">Ready to Book?</h4>
-                        <p class="text-slate-500 text-[13px] font-medium mb-6 leading-relaxed max-w-[250px]">Open the assistant to start planning your route and get fare estimates.</p>
+                        <h4 id="placeholderTitle" class="text-[22px] font-extrabold text-slate-800 mb-2">Ready to Book?</h4>
+                        <p id="placeholderText" class="text-slate-500 text-[13px] font-medium mb-6 leading-relaxed max-w-[250px]">Open the assistant to start planning your route and get fare estimates.</p>
                         
                         <div class="w-full flex flex-col gap-3 text-left bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
                             <div class="flex items-center gap-3">
@@ -82,7 +82,7 @@ include 'layout/header.php';
                             </div>
                         </div>
 
-                        <button onclick="toggleChat()" class="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-[14px] hover:bg-red-600 transition-colors shadow-md flex items-center justify-center gap-2">
+                        <button id="openAssistantBtn" onclick="toggleChat()" class="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-[14px] hover:bg-red-600 transition-colors shadow-md flex items-center justify-center gap-2">
                             <i class="fas fa-comment-dots text-white"></i> Open Assistant
                         </button>
                     </div>
@@ -105,7 +105,7 @@ include 'layout/header.php';
                         <div id="assistantChatView" class="flex-1 flex flex-col min-h-0">
                             <div id="chatBox" class="flex-1 p-3 overflow-y-auto bg-slate-50 flex flex-col gap-1.5 no-scrollbar">
                                 <div class="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    <div class="bg-white border border-slate-200 text-slate-800 px-3 py-2 inline-block max-w-[75%] rounded-[1rem] rounded-tl-sm text-[12px] font-medium leading-relaxed">Hi! I'm your Zuber assistant. Where should I pick you up from?</div>
+                                    <div id="assistantWelcomeMessage" class="bg-white border border-slate-200 text-slate-800 px-3 py-2 inline-block max-w-[75%] rounded-[1rem] rounded-tl-sm text-[12px] font-medium leading-relaxed">Hi! I'm your Zuber assistant. Where should I pick you up from?</div>
                                 </div>
                             </div>
                             <div class="p-3 bg-white border-t border-slate-100 flex flex-col gap-2">
@@ -272,6 +272,35 @@ include 'layout/header.php';
             localStorage.removeItem('zuber_chat_state');
         }
 
+        function applyHistoryModeContent() {
+            const pageEyebrow = document.getElementById('pageEyebrow');
+            const pageHeading = document.getElementById('pageHeading');
+            const pageSubheading = document.getElementById('pageSubheading');
+            const placeholderTitle = document.getElementById('placeholderTitle');
+            const placeholderText = document.getElementById('placeholderText');
+            const openAssistantBtn = document.getElementById('openAssistantBtn');
+            const assistantWelcomeMessage = document.getElementById('assistantWelcomeMessage');
+
+            if (isHistoryView) {
+                if (pageEyebrow) pageEyebrow.textContent = 'Trip Replay';
+                if (pageHeading) pageHeading.textContent = 'Review This Route';
+                if (pageSubheading) pageSubheading.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Open Zuber Assistant to revisit this trip or book it again`;
+                if (placeholderTitle) placeholderTitle.textContent = 'Review Past Journey';
+                if (placeholderText) placeholderText.textContent = 'Open the assistant to replay this route, review the fare path, or book the same trip again.';
+                if (openAssistantBtn) openAssistantBtn.innerHTML = `<i class="fas fa-route text-white"></i> Review Journey`;
+                if (assistantWelcomeMessage) assistantWelcomeMessage.innerHTML = `You are viewing a past route. Review the trip, inspect the route, or choose a new pickup time to book it again.`;
+                return;
+            }
+
+            if (pageEyebrow) pageEyebrow.textContent = 'Request a Ride';
+            if (pageHeading) pageHeading.textContent = 'Where to?';
+            if (pageSubheading) pageSubheading.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Use Zuber Assistant below to book your ride`;
+            if (placeholderTitle) placeholderTitle.textContent = 'Ready to Book?';
+            if (placeholderText) placeholderText.textContent = 'Open the assistant to start planning your route and get fare estimates.';
+            if (openAssistantBtn) openAssistantBtn.innerHTML = `<i class="fas fa-comment-dots text-white"></i> Open Assistant`;
+            if (assistantWelcomeMessage) assistantWelcomeMessage.innerHTML = `Hi! I'm your Zuber assistant. Where should I pick you up from?`;
+        }
+
         /**
          * Disables all previous action buttons
          */
@@ -376,7 +405,7 @@ include 'layout/header.php';
                     removeTyping(typing);
                     
                     if(r) {
-                        dropCoords = L.latLng(r.lat, r.lon); dropLoc = r.display; isHistoryView = false;
+                        dropCoords = L.latLng(r.lat, r.lon); dropLoc = r.display; isHistoryView = false; applyHistoryModeContent();
                         addMsg(`🏁 <b>Destination:</b> ${r.display}.<br>Calculating your route now...`, 'bot');
                         calculateRoute(); chatStep = 0;
                     } else {
@@ -462,8 +491,8 @@ include 'layout/header.php';
             wrapper.className = 'flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300 mb-2';
             wrapper.innerHTML = `
                 <div class="bg-white/95 backdrop-blur-md border border-slate-200 text-slate-800 rounded-[1.25rem] rounded-tl-sm shadow-sm px-4 py-3 min-w-[60px] max-w-[85%] text-[13px] font-medium leading-relaxed">
-                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-primary mb-1">Pickup Schedule</p>
-                    <p>Your pickup is set for <b>${scheduleText}</b>.</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-primary mb-1">${isHistoryView ? 'Rebooking Schedule' : 'Pickup Schedule'}</p>
+                    <p>${isHistoryView ? `This route is set to be booked again for <b>${scheduleText}</b>.` : `Your pickup is set for <b>${scheduleText}</b>.`}</p>
                 </div>
             `;
 
@@ -541,7 +570,7 @@ include 'layout/header.php';
             wrapper.className = 'flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300 mb-2';
             wrapper.innerHTML = `
                 <div class="bg-white/95 backdrop-blur-md border border-slate-200 text-slate-800 rounded-[1.25rem] rounded-tl-sm shadow-sm px-4 py-3 min-w-[60px] max-w-[85%] text-[13px] font-medium leading-relaxed">
-                    Please select both pickup date and pickup time before confirming your booking.
+                    ${isHistoryView ? 'Choose a pickup date and pickup time if you want to book this same route again.' : 'Please select both pickup date and pickup time before confirming your booking.'}
                 </div>
             `;
 
@@ -743,8 +772,8 @@ include 'layout/header.php';
                     currentRoutePrice = price;
                     
                     addMsg(`<div class="bg-primary/5 -mx-4 -mt-3 p-4 rounded-t-[1.25rem] border-b border-primary/10 mb-3">
-                            <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Route Ready</p>
-                            <h4 class="text-lg font-black text-slate-900 leading-tight">Found the best path!</h4>
+                            <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">${isHistoryView ? 'Trip Replay' : 'Route Ready'}</p>
+                            <h4 class="text-lg font-black text-slate-900 leading-tight">${isHistoryView ? 'Here is the route from your trip history.' : 'Found the best path!'}</h4>
                         </div>
                         <div class="space-y-2 pb-1">
                             <div class="flex justify-between items-center"><span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Distance</span><span class="text-slate-900 font-black">${currentDistance}</span></div>
@@ -1001,6 +1030,8 @@ include 'layout/header.php';
          */
         async function viewHistoryRoute(p, d) {
             if(typeof closeBubble === 'function') closeBubble();
+            isHistoryView = true;
+            applyHistoryModeContent();
             addMsg(`Re-visualizing your journey from <b>${p.split(',')[0]}</b> to <b>${d.split(',')[0]}</b>...`, 'bot');
             pickupLoc = p; dropLoc = d;
             
@@ -1010,7 +1041,7 @@ include 'layout/header.php';
             
             if(pRes && dRes) {
                 pickupCoords = L.latLng(pRes.lat, pRes.lon); dropCoords = L.latLng(dRes.lat, dRes.lon);
-                isHistoryView = true; calculateRoute();
+                calculateRoute();
             } else {
                 addMsg("❌ I couldn't map that route right now. The address might be outdated.", 'bot');
             }
@@ -1058,6 +1089,7 @@ include 'layout/header.php';
         // Initialize fresh state
         window.addEventListener('DOMContentLoaded', () => {
             clearPersistedChat();
+            applyHistoryModeContent();
             setupCardFormatting();
             setupPickupTimeFormatting();
             document.getElementById('pickupDate')?.addEventListener('change', syncPickupScheduleMessage);
@@ -1072,6 +1104,10 @@ include 'layout/header.php';
             const params = new URLSearchParams(window.location.search);
             if(params.get('pickup')) pickupLoc = decodeURIComponent(params.get('pickup'));
             if(params.get('dest')) dropLoc = decodeURIComponent(params.get('dest'));
+            if(params.get('visualize') === 'true') {
+                isHistoryView = true;
+                applyHistoryModeContent();
+            }
             
             if(params.get('history') === 'true') {
                 if(typeof openBubble === 'function') openBubble('rides');

@@ -52,7 +52,7 @@ $stats = [
 $recent_bookings = $conn->query("SELECT b.*, u.fullname as customer 
                                 FROM bookings b 
                                 LEFT JOIN users u ON b.user_id = u.id 
-                                ORDER BY b.created_at DESC LIMIT 10");
+                                ORDER BY b.id DESC LIMIT 10");
 ?>
 
 <main class="main-content">
