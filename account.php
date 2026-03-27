@@ -36,11 +36,11 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                     
                     <!-- Avatar Section -->
                     <div class="relative mb-6 z-10 group" id="avatarMenuContainer">
-                        <div class="w-28 h-28 rounded-[1.75rem] border border-white/20 shadow-xl overflow-hidden relative bg-white/10">
-                            <img id="previewAvatar" src="<?= $userImage ?>" class="w-full h-full object-cover">
+                        <div class="w-28 h-28 rounded-full border border-white/20 shadow-xl overflow-hidden relative bg-white/10">
+                            <img id="previewAvatar" src="<?= $userImage ?>" class="w-full h-full object-cover rounded-full">
 
-                            <button type="button" onclick="toggleAvatarOptions(event)" class="absolute inset-0 rounded-[1.75rem] bg-slate-950/0 hover:bg-slate-950/18 focus:bg-slate-950/18 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-                                <span class="w-12 h-12 text-white rounded-[1.1rem] flex items-center justify-center bg-white/10 backdrop-blur-sm">
+                            <button type="button" onclick="toggleAvatarOptions(event)" class="absolute inset-0 rounded-full bg-slate-950/0 hover:bg-slate-950/18 focus:bg-slate-950/18 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+                                <span class="w-12 h-12 text-white rounded-full flex items-center justify-center bg-white/10 backdrop-blur-sm">
                                     <i class="fas fa-camera text-[16px]"></i>
                                 </span>
                             </button>

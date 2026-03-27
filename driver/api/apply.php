@@ -44,16 +44,36 @@ try {
     }
 
     // 5. VALIDATION
-    if (empty($email) || empty($license)) {
-        throw new Exception("Email and License Number are required.");
+    if (empty($email) || empty($password) || empty($contact) || empty($license)) {
+        throw new Exception("Email, Password, Mobile Number, and License Number are required.");
+    }
+
+    if (!preg_match('/@gmail\.com$/i', $email)) {
+        throw new Exception("Email must end with @gmail.com.");
+    }
+
+    if (strlen($password) < 6 || strlen($password) > 32) {
+        throw new Exception("Password length must be between 6 and 32 characters.");
+    }
+
+    $contactDigits = preg_replace('/\D+/', '', $contact);
+    if (strlen($contactDigits) >= 10) {
+        $contactDigits = substr($contactDigits, -10);
+    }
+    if (strlen($contactDigits) !== 10) {
+        throw new Exception("Mobile number must be exactly 10 digits.");
+    }
+
+    if (!preg_match('/^[A-Z0-9]{10,16}$/', strtoupper($license))) {
+        throw new Exception("Driving License must be 10 to 16 alphanumeric characters.");
     }
 
     // 6. SANITIZATION
     $fullname = $conn->real_escape_string($firstName . ' ' . $lastName);
     $email = $conn->real_escape_string($email);
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    $contact = $conn->real_escape_string($contact);
-    $license = $conn->real_escape_string($license);
+    $contact = $conn->real_escape_string('+91 ' . $contactDigits);
+    $license = $conn->real_escape_string(strtoupper($license));
     $govId = $conn->real_escape_string($govId);
     $address = $conn->real_escape_string($address);
     $gender = $conn->real_escape_string($gender);

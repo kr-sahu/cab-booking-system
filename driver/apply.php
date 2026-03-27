@@ -35,7 +35,7 @@ include '../layout/header.php';
 
         .driver-copy-card {
             position: relative;
-            padding: 2.35rem;
+            padding: 2rem;
             border-radius: 2.2rem;
             background: rgba(255, 255, 255, 0.64);
             border: 1px solid rgba(226, 232, 240, 0.82);
@@ -70,7 +70,7 @@ include '../layout/header.php';
             display: flex;
             align-items: flex-start;
             gap: 1rem;
-            padding: 1rem 0;
+            padding: 0.85rem 0;
         }
 
         .driver-benefit + .driver-benefit {
@@ -95,7 +95,7 @@ include '../layout/header.php';
         .driver-form-shell {
             position: relative;
             border-radius: 2.5rem;
-            padding: 2rem;
+            padding: 1.5rem;
             background: rgba(255, 255, 255, 0.88);
             border: 1px solid rgba(226, 232, 240, 0.92);
             box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
@@ -121,7 +121,7 @@ include '../layout/header.php';
 
         .driver-label {
             color: #64748b;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             letter-spacing: 0.12em;
         }
 
@@ -135,6 +135,12 @@ include '../layout/header.php';
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
         }
 
+        .driver-input,
+        .driver-prefix-input,
+        .driver-select-trigger {
+            min-height: 64px;
+        }
+
         .driver-input:focus,
         .driver-prefix-input:focus,
         .driver-select-trigger:hover {
@@ -145,10 +151,23 @@ include '../layout/header.php';
 
         .driver-submit {
             border-radius: 1.55rem !important;
-            padding-top: 1.2rem !important;
-            padding-bottom: 1.2rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
             letter-spacing: 0.18em !important;
             box-shadow: 0 20px 34px rgba(15, 23, 42, 0.14) !important;
+        }
+
+        .driver-kyc-grid {
+            gap: 1rem;
+        }
+
+        .driver-kyc-scroll {
+            max-height: 500px;
+            padding-top: 0.15rem;
+        }
+
+        .driver-photo-box {
+            height: 148px;
         }
 
         @media (max-width: 1024px) {
@@ -159,8 +178,8 @@ include '../layout/header.php';
     </style>
 
     <!-- DRIVE SECTION: Onboarding page for prospective drivers -->
-    <section id="drive" class="driver-stage py-20 px-6 md:px-12 lg:px-16 min-h-screen bg-gradient-to-br from-slate-100 via-white to-rose-50 text-slate-900">
-        <div class="max-w-[1380px] mx-auto grid lg:grid-cols-[0.95fr_1.05fr] gap-12 xl:gap-16 items-start relative z-[1]">
+    <section id="drive" class="driver-stage py-14 px-6 md:px-10 lg:px-14 min-h-screen bg-gradient-to-br from-slate-100 via-white to-rose-50 text-slate-900">
+        <div class="max-w-[1320px] mx-auto grid lg:grid-cols-[0.9fr_1.02fr] gap-8 xl:gap-10 items-start relative z-[1]">
             <!-- Informational Column: Highlights benefits of driving with Zuber -->
             <div class="driver-copy-card lg:sticky lg:top-28">
                 <div class="driver-pill">
@@ -187,11 +206,11 @@ include '../layout/header.php';
 
             <!-- Form Column: Multi-step registration and KYC process -->
             <div class="driver-form-shell text-black overflow-hidden">
-                <!-- STEP 1: Driver login -->
-                <div id="driverStep1" class="space-y-7 animate-in fade-in slide-in-from-right-4 duration-500">
+                <!-- STEP 1: Driver account creation -->
+                <div id="driverStep1" class="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div>
-                        <h3 class="driver-panel-title text-3xl font-black">Driver Login</h3>
-                        <p class="text-slate-500 text-base mt-2">Sign in to your driver account to access your dashboard.</p>
+                        <h3 class="driver-panel-title text-3xl font-black">Create Driver Account</h3>
+                        <p class="text-slate-500 text-base mt-2">Start with your Gmail and password, then continue to the KYC step.</p>
                     </div>
                     <div class="space-y-4">
                         <div class="relative">
@@ -200,38 +219,38 @@ include '../layout/header.php';
                         </div>
                         <div class="relative">
                             <label class="driver-label text-[10px] font-black uppercase pl-2 mb-2 block">Password</label>
-                            <input type="password" id="driverPass" placeholder="********" class="driver-input w-full px-5 py-4 outline-none transition-all font-bold text-[15px] text-slate-900 placeholder-slate-400">
+                            <input type="password" id="driverPass" placeholder="Minimum 6 characters" minlength="6" maxlength="32" class="driver-input w-full px-5 py-4 outline-none transition-all font-bold text-[15px] text-slate-900 placeholder-slate-400">
                         </div>
                     </div>
-                    <button id="driverLoginBtn" onclick="loginDriver()" class="driver-submit w-full bg-slate-950 text-white font-black text-base hover:bg-slate-800 transition transform active:scale-95 uppercase">Enter Dashboard</button>
-                    <p class="text-center text-[11px] text-slate-400 px-4">Need a driver account first? <button type="button" onclick="showApplicationStep()" class="text-primary font-bold hover:underline">Apply now</button></p>
+                    <button id="driverContinueBtn" onclick="continueToKyc()" class="driver-submit w-full bg-slate-950 text-white font-black text-base hover:bg-slate-800 transition transform active:scale-95 uppercase">Continue to KYC</button>
+                    <p class="text-center text-[11px] text-slate-400 px-4">Already have a driver account? <a href="login.php" class="text-primary font-bold hover:underline">Login here</a></p>
                 </div>
 
                 <!-- STEP 2: KYC (Know Your Customer) and personal documentation -->
-                <div id="driverStep2" class="hidden space-y-7 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div id="driverStep2" class="hidden space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div class="flex justify-between items-start gap-4">
                         <div>
-                            <h3 class="driver-panel-title text-4xl font-extrabold text-black">KYC Verification</h3>
-                            <p class="text-slate-500 mt-2 font-medium italic text-lg">Complete your profile to start driving</p>
+                            <h3 class="driver-panel-title text-3xl font-extrabold text-black">KYC Verification</h3>
+                            <p class="text-slate-500 mt-1.5 font-medium italic text-base">Complete your profile to start driving</p>
                         </div>
-                        <button onclick="prevDriverStep()" class="text-slate-400 hover:text-black transition uppercase text-[11px] font-bold tracking-[0.18em] outline-none pt-3">Back</button>
+                        <button onclick="prevDriverStep()" class="text-slate-400 hover:text-black transition uppercase text-[11px] font-bold tracking-[0.18em] outline-none pt-2">Back</button>
                     </div>
 
                     <!-- Scrollable area for extensive form fields -->
-                    <div class="max-h-[560px] overflow-y-auto no-scrollbar pr-2 pt-1">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="driver-kyc-scroll overflow-y-auto no-scrollbar pr-1">
+                        <div class="driver-kyc-grid grid grid-cols-1 md:grid-cols-2">
                             <div class="space-y-2">
                                 <label class="driver-label text-[10px] font-bold uppercase pl-2 block">First Name</label>
-                                <input type="text" id="driverFirstName" placeholder="John" class="driver-input w-full px-5 py-4 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
+                                <input type="text" id="driverFirstName" placeholder="John" class="driver-input w-full px-5 py-3.5 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
                             </div>
                             <div class="space-y-2">
                                 <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Last Name</label>
-                                <input type="text" id="driverLastName" placeholder="Doe" class="driver-input w-full px-5 py-4 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
+                                <input type="text" id="driverLastName" placeholder="Doe" class="driver-input w-full px-5 py-3.5 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
                             </div>
 
                             <div class="space-y-2 relative" id="customGenderDropdown">
                                 <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Gender Selection</label>
-                                <div onclick="toggleGenderTray()" class="driver-select-trigger w-full px-5 py-4 flex items-center justify-between cursor-pointer transition-all text-[15px] font-semibold shadow-sm">
+                                <div onclick="toggleGenderTray()" class="driver-select-trigger w-full px-5 py-3.5 flex items-center justify-between cursor-pointer transition-all text-[15px] font-semibold shadow-sm">
                                     <span id="selectedGenderLabel" class="text-gray-400">Select Gender</span>
                                     <input type="hidden" id="driverGender" value="">
                                     <i class="fas fa-chevron-down text-[10px] text-gray-300"></i>
@@ -253,38 +272,40 @@ include '../layout/header.php';
                                 <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Mobile Number</label>
                                 <div class="relative flex items-center">
                                     <span class="absolute left-5 text-[15px] font-black text-black select-none pointer-events-none">+91</span>
-                                    <input type="tel" id="driverContact" placeholder="00000 00000" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)" class="driver-prefix-input w-full py-4 pr-5 pl-16 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
+                                    <input type="tel" id="driverContact" placeholder="00000 00000" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)" class="driver-prefix-input w-full py-3.5 pr-5 pl-16 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
                                 </div>
                             </div>
 
                             <div class="space-y-2">
                                 <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Aadhaar / PAN</label>
-                                <input type="text" id="driverGovId" placeholder="Enter 12-digit ID" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12)" class="driver-input w-full px-5 py-4 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
+                                <input type="text" id="driverGovId" placeholder="Enter 12-digit ID" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12)" class="driver-input w-full px-5 py-3.5 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
                             </div>
                             <div class="space-y-2">
                                 <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Driving License</label>
-                                <input type="text" id="driverLicense" placeholder="Enter DL number" class="driver-input w-full px-5 py-4 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
+                                <input type="text" id="driverLicense" placeholder="Enter DL number" maxlength="16" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 16)" class="driver-input w-full px-5 py-3.5 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
                             </div>
-                            <div class="md:col-span-2 space-y-2">
-                                <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Residence Address</label>
-                                <input type="text" id="driverAddress" placeholder="Full Address" class="driver-input w-full px-5 py-4 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
-                            </div>
+                            <div class="md:col-span-2 grid md:grid-cols-[minmax(0,1.55fr)_minmax(220px,0.65fr)] gap-4 items-start">
+                                <div class="space-y-2">
+                                    <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Residence Address</label>
+                                    <input type="text" id="driverAddress" placeholder="Full Address" class="driver-input w-full px-5 py-3.5 outline-none transition-all text-[15px] font-semibold text-slate-800 shadow-sm">
+                                </div>
 
-                            <div class="md:col-span-2 space-y-2">
-                                <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Passport Photo</label>
-                                <input type="file" id="passPhotoInputDrive" class="hidden" accept="image/*" onchange="updatePhotoLabelDrive(this)">
-                                <div onclick="document.getElementById('passPhotoInputDrive').click()" class="driver-upload-box relative w-full p-12 border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden">
-                                    <div id="photoPreviewDrive" class="absolute inset-0 hidden bg-white">
-                                        <img id="previewImgDrive" src="" class="w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <p class="text-white text-[10px] font-bold uppercase tracking-widest bg-black/20 backdrop-blur-md px-4 py-2 rounded-lg">Change Photo</p>
+                                <div class="space-y-2">
+                                    <label class="driver-label text-[10px] font-bold uppercase pl-2 block">Passport Photo</label>
+                                    <input type="file" id="passPhotoInputDrive" class="hidden" accept="image/*" onchange="updatePhotoLabelDrive(this)">
+                                    <div onclick="document.getElementById('passPhotoInputDrive').click()" class="driver-photo-box driver-upload-box relative w-full px-5 py-4 border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all group overflow-hidden">
+                                        <div id="photoPreviewDrive" class="absolute inset-0 hidden bg-white">
+                                            <img id="previewImgDrive" src="" class="w-full h-full object-cover">
+                                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <p class="text-white text-[10px] font-bold uppercase tracking-widest bg-black/20 backdrop-blur-md px-4 py-2 rounded-lg">Change Photo</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div id="uploadUI" class="flex flex-col items-center">
-                                        <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-gray-300 mb-3 group-hover:text-black transition-colors">
-                                            <i class="fas fa-camera"></i>
+                                        <div id="uploadUI" class="flex flex-col items-center text-center">
+                                            <div class="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-gray-300 mb-2 group-hover:text-black transition-colors">
+                                                <i class="fas fa-camera"></i>
+                                            </div>
+                                            <p id="photoLabelDrive" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Upload Photo</p>
                                         </div>
-                                        <p id="photoLabelDrive" class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Click to upload photo</p>
                                     </div>
                                 </div>
                             </div>
@@ -299,55 +320,28 @@ include '../layout/header.php';
 
     <!-- CLIENT-SIDE LOGIC: Multi-step navigation and form handling -->
     <script>
-        function showApplicationStep() {
-            document.getElementById('driverStep1').classList.add('hidden');
-            document.getElementById('driverStep2').classList.remove('hidden');
-        }
-
         function prevDriverStep() {
             document.getElementById('driverStep2').classList.add('hidden');
             document.getElementById('driverStep1').classList.remove('hidden');
         }
 
-        async function loginDriver() {
+        function continueToKyc() {
             const email = document.getElementById('driverEmail').value.trim();
             const pass = document.getElementById('driverPass').value;
-            const loginBtn = document.getElementById('driverLoginBtn');
+            const continueBtn = document.getElementById('driverContinueBtn');
 
             if(!email || !pass) { alert("Please enter both Gmail and Password to continue."); return; }
             if(!/@gmail\.com$/i.test(email)) { alert("Email must end with @gmail.com."); return; }
+            if(pass.length < 6 || pass.length > 32) { alert("Password length must be between 6 and 32 characters."); return; }
 
-            loginBtn.disabled = true;
-            loginBtn.innerText = "Signing In...";
+            continueBtn.disabled = true;
+            continueBtn.innerText = "Continuing...";
 
-            try {
-                const formData = new FormData();
-                formData.append('email', email);
-                formData.append('password', pass);
+            document.getElementById('driverStep1').classList.add('hidden');
+            document.getElementById('driverStep2').classList.remove('hidden');
 
-                const response = await fetch('api/login.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server responded with ${response.status}`);
-                }
-
-                const res = await response.json();
-                if (res.success) {
-                    window.location.href = res.redirect || 'index.php';
-                    return;
-                }
-
-                alert(res.message || "Login failed.");
-            } catch (e) {
-                console.error(e);
-                alert("Login Failed: " + e.message + ". Please try again.");
-            }
-
-            loginBtn.disabled = false;
-            loginBtn.innerText = "Enter Dashboard";
+            continueBtn.disabled = false;
+            continueBtn.innerText = "Continue to KYC";
         }
 
         function updatePhotoLabelDrive(input) {
@@ -413,8 +407,23 @@ include '../layout/header.php';
                 return;
             }
 
+            if(!/@gmail\.com$/i.test(email)) {
+                alert("Email must end with @gmail.com.");
+                return;
+            }
+
+            if(password.length < 6 || password.length > 32) {
+                alert("Password length must be between 6 and 32 characters.");
+                return;
+            }
+
             if(govId.length !== 12) {
                 alert("Aadhaar / PAN must be exactly 12 digits.");
+                return;
+            }
+
+            if(!/^[A-Z0-9]{10,16}$/.test(license)) {
+                alert("Driving license length must be between 10 and 16 characters using letters and numbers only.");
                 return;
             }
 

@@ -340,7 +340,41 @@ include 'inc/sidebar.php';
             } catch(e) { console.error(e); }
         }
 
-        function updateMapRoute(trip) {
+        async function geocodeTripLocation(query) {
+            const q = String(query || '').trim();
+            if (!q) return null;
+
+            const variants = [q, `${q}, India`];
+
+            for (const variant of variants) {
+                try {
+                    const params = new URLSearchParams({
+                        q: variant,
+                        format: 'jsonv2',
+                        addressdetails: '1',
+                        limit: '1',
+                        countrycodes: 'in',
+                        bounded: '1',
+                        viewbox: '68,38,98,6'
+                    });
+
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const data = await response.json();
+
+                    if (Array.isArray(data) && data[0]) {
+                        return [Number(data[0].lat), Number(data[0].lon)];
+                    }
+                } catch (error) {
+                    console.error('Trip geocode failed:', error);
+                }
+            }
+
+            return null;
+        }
+
+        async function updateMapRoute(trip) {
             const mapEl = document.getElementById('activeMap');
             if(!mapEl) return;
             
@@ -349,8 +383,16 @@ include 'inc/sidebar.php';
             map = L.map('activeMap', { zoomControl: false }).setView([20.5937, 78.9629], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-            // Using dummy coords for demo
-            const start = [28.6139, 77.2090], end = [28.5355, 77.3910]; 
+            const meta = document.getElementById('miniRouteMeta');
+            if(meta) meta.innerText = 'Resolving Route...';
+
+            const start = await geocodeTripLocation(trip.pickup_location);
+            const end = await geocodeTripLocation(trip.destination);
+
+            if (!start || !end) {
+                if(meta) meta.innerText = 'Route unavailable';
+                return;
+            }
             routingControl = L.Routing.control({
                 waypoints: [L.latLng(start[0], start[1]), L.latLng(end[0], end[1])],
                 routeWhileDragging: false, show: false,
@@ -363,8 +405,9 @@ include 'inc/sidebar.php';
                 })
             }).on('routesfound', (e) => {
                 const s = e.routes[0].summary;
-                const meta = document.getElementById('miniRouteMeta');
                 if(meta) meta.innerText = `${(s.totalDistance / 1000).toFixed(1)} km • ${Math.round(s.totalTime / 60)} mins`;
+            }).on('routingerror', () => {
+                if(meta) meta.innerText = 'Route unavailable';
             }).addTo(map);
 
             map.fitBounds(L.latLngBounds([start, end]), { padding: [50, 50] });

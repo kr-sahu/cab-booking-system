@@ -258,7 +258,7 @@ include 'layout/header.php';
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         // Core variables for route management
-        let routeControl = null, pickupCoords = null, dropCoords = null, stepMarker = null;
+        let routeControl = null, pickupCoords = null, dropCoords = null, stepMarker = null, fallbackRouteLine = null;
         let pickupLoc = "", dropLoc = "", chatStep = 0, isHistoryView = false, currentDistance = "", currentRoutePrice = "";
         let isFetching = false;
         let isNotificationView = false;
@@ -337,39 +337,383 @@ include 'layout/header.php';
          */
         function removeTyping(el) { if(el && el.parentNode) el.remove(); }
 
+        function buildGeocodeQueries(q) {
+            const raw = String(q || '').trim();
+            const variants = new Set([raw, `${raw}, India`]);
+
+            const replacements = [
+                { pattern: /brahmapur/gi, replacement: 'Berhampur' },
+                { pattern: /bhubanswar|bhubaneshwar|bhuvaneswar|bhubneswar|bhubaneshwer/gi, replacement: 'Bhubaneswar' },
+                { pattern: /vishakapatnam|vizag/gi, replacement: 'Visakhapatnam' },
+                { pattern: /calcutta/gi, replacement: 'Kolkata' },
+                { pattern: /bombay/gi, replacement: 'Mumbai' },
+                { pattern: /bangalore/gi, replacement: 'Bengaluru' },
+                { pattern: /madras/gi, replacement: 'Chennai' }
+            ];
+
+            replacements.forEach(({ pattern, replacement }) => {
+                if (pattern.test(raw)) {
+                    const corrected = raw.replace(pattern, replacement);
+                    variants.add(corrected);
+                    variants.add(`${corrected}, India`);
+                }
+            });
+
+            return Array.from(variants).filter(Boolean);
+        }
+
+        function normalizeLocationKey(value) {
+            return String(value || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+        }
+
+        function isWithinIndia(lat, lon) {
+            return lat >= 6 && lat <= 38 && lon >= 68 && lon <= 98;
+        }
+
+        function formatPlaceDisplay(name, city, state, country) {
+            const parts = [name, city, state, country]
+                .map(part => String(part || '').trim())
+                .filter(Boolean);
+
+            const uniqueParts = [];
+            parts.forEach(part => {
+                if (!uniqueParts.includes(part)) uniqueParts.push(part);
+            });
+
+            return uniqueParts.join(', ');
+        }
+
+        function getLocalGeocodeResult(q) {
+            const normalized = normalizeLocationKey(q);
+            if (!normalized) return null;
+
+            const knownLocations = [
+                {
+                    keys: ['brahmapur', 'berhampur', 'brahmapur odisha', 'berhampur odisha'],
+                    lat: 19.3149,
+                    lon: 84.7941,
+                    display: 'Brahmapur, Odisha'
+                },
+                {
+                    keys: ['bhubaneswar', 'bhubanswar', 'bhubaneshwar', 'bhuvaneswar', 'bhubneswar'],
+                    lat: 20.2961,
+                    lon: 85.8245,
+                    display: 'Bhubaneswar, Odisha'
+                },
+                {
+                    keys: ['hinjilicut', 'hinjilicut odisha'],
+                    lat: 19.4825,
+                    lon: 84.7449,
+                    display: 'Hinjilicut, Odisha'
+                },
+                {
+                    keys: ['kolkata', 'calcutta'],
+                    lat: 22.5726,
+                    lon: 88.3639,
+                    display: 'Kolkata, West Bengal'
+                },
+                {
+                    keys: ['bhubaneswar municipal corporation'],
+                    lat: 20.2961,
+                    lon: 85.8245,
+                    display: 'Bhubaneswar Municipal Corporation, Odisha'
+                },
+                {
+                    keys: ['delhi', 'new delhi', 'delhi ncr'],
+                    lat: 28.6139,
+                    lon: 77.2090,
+                    display: 'New Delhi, Delhi'
+                },
+                {
+                    keys: ['mumbai', 'bombay'],
+                    lat: 19.0760,
+                    lon: 72.8777,
+                    display: 'Mumbai, Maharashtra'
+                },
+                {
+                    keys: ['chennai', 'madras'],
+                    lat: 13.0827,
+                    lon: 80.2707,
+                    display: 'Chennai, Tamil Nadu'
+                },
+                {
+                    keys: ['bengaluru', 'bangalore'],
+                    lat: 12.9716,
+                    lon: 77.5946,
+                    display: 'Bengaluru, Karnataka'
+                },
+                {
+                    keys: ['hyderabad'],
+                    lat: 17.3850,
+                    lon: 78.4867,
+                    display: 'Hyderabad, Telangana'
+                },
+                {
+                    keys: ['pune', 'poona'],
+                    lat: 18.5204,
+                    lon: 73.8567,
+                    display: 'Pune, Maharashtra'
+                }
+            ];
+
+            const exactMatch = knownLocations.find(location =>
+                location.keys.some(key => normalized === key || normalized.includes(key))
+            );
+
+            return exactMatch || null;
+        }
+
+        function resolveCanonicalLocationInput(q) {
+            const raw = String(q || '').trim();
+            const normalized = normalizeLocationKey(raw);
+
+            const aliasMap = [
+                { match: ['bhubaneswar', 'bhubanswar', 'bhubaneshwar', 'bhuvaneswar', 'bhubneswar', 'bhubaneshwer'], canonical: 'Bhubaneswar' },
+                { match: ['brahmapur', 'berhampur'], canonical: 'Brahmapur' },
+                { match: ['hinjilicut'], canonical: 'Hinjilicut' },
+                { match: ['delhi', 'new delhi', 'delhi ncr'], canonical: 'New Delhi' },
+                { match: ['kolkata', 'calcutta'], canonical: 'Kolkata' },
+                { match: ['visakhapatnam', 'vishakapatnam', 'vizag'], canonical: 'Visakhapatnam' }
+            ];
+
+            const hit = aliasMap.find(item => item.match.some(name => normalized === name || normalized.includes(name)));
+            return hit ? hit.canonical : raw;
+        }
+
+        function parsePhotonFeature(feature) {
+            if (!feature?.geometry?.coordinates) return null;
+
+            const lon = Number(feature.geometry.coordinates[0]);
+            const lat = Number(feature.geometry.coordinates[1]);
+            if (!isWithinIndia(lat, lon)) return null;
+
+            const props = feature.properties || {};
+            return {
+                lat,
+                lon,
+                display: formatPlaceDisplay(
+                    props.name || props.street || props.county || props.state_district,
+                    props.city || props.county || props.district,
+                    props.state,
+                    'India'
+                ) || 'Selected Location, India'
+            };
+        }
+
+        function parseNominatimFeature(feature) {
+            if (!feature) return null;
+
+            const lat = Number(feature.lat);
+            const lon = Number(feature.lon);
+            if (!isWithinIndia(lat, lon)) return null;
+
+            const address = feature.address || {};
+            return {
+                lat,
+                lon,
+                display: formatPlaceDisplay(
+                    address.road || address.neighbourhood || address.suburb || address.village || address.town || address.city || feature.display_name?.split(',')?.[0],
+                    address.city || address.town || address.village || address.county,
+                    address.state,
+                    'India'
+                ) || feature.display_name || 'Selected Location, India'
+            };
+        }
+
+        async function fetchPhotonLocation(query) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=68,6,98,38`, {
+                    signal: controller.signal
+                });
+                const data = await response.json();
+                if (!Array.isArray(data.features)) return null;
+                return data.features.map(parsePhotonFeature).find(Boolean) || null;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        async function fetchNominatimLocation(query) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+            try {
+                const params = new URLSearchParams({
+                    q: query,
+                    format: 'jsonv2',
+                    addressdetails: '1',
+                    limit: '5',
+                    countrycodes: 'in',
+                    bounded: '1',
+                    viewbox: '68,38,98,6'
+                });
+
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                if (!Array.isArray(data)) return null;
+                return data.map(parseNominatimFeature).find(Boolean) || null;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        async function reverseGeocode(lat, lon) {
+            if (!isWithinIndia(lat, lon)) return null;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+            try {
+                const params = new URLSearchParams({
+                    lat: String(lat),
+                    lon: String(lon),
+                    format: 'jsonv2',
+                    addressdetails: '1',
+                    zoom: '16'
+                });
+
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                return parseNominatimFeature(data) || {
+                    lat,
+                    lon,
+                    display: `Pinned Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`
+                };
+            } catch (error) {
+                console.error('Reverse geocode failed:', error);
+                return {
+                    lat,
+                    lon,
+                    display: `Pinned Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`
+                };
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
         /**
          * Robust geocoding with multiple fallback strategies and timeout
          */
         async function geocode(q) {
-            const queries = [
-                q + ", India",
-                q,
-                q.toLowerCase().includes('brahmapur') ? q.replace(/brahmapur/gi, 'Berhampur') + ", India" : null
-            ].filter(v => v !== null);
+            const canonicalInput = resolveCanonicalLocationInput(q);
+            const queries = buildGeocodeQueries(canonicalInput);
+            const localMatch = getLocalGeocodeResult(canonicalInput);
+
+            if (localMatch) {
+                return {
+                    lat: localMatch.lat,
+                    lon: localMatch.lon,
+                    display: localMatch.display
+                };
+            }
 
             for (const query of queries) {
+                const queryLocalMatch = getLocalGeocodeResult(query);
+                if (queryLocalMatch) {
+                    return {
+                        lat: queryLocalMatch.lat,
+                        lon: queryLocalMatch.lon,
+                        display: queryLocalMatch.display
+                    };
+                }
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
-                    
-                    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1`, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    
-                    const d = await r.json();
-                    if (d.features && d.features[0]) {
-                        const f = d.features[0];
-                        return { 
-                            lat: f.geometry.coordinates[1], 
-                            lon: f.geometry.coordinates[0], 
-                            display: f.properties.name + ", " + (f.properties.city || f.properties.state || f.properties.country) 
-                        };
-                    }
+                    const photonMatch = await fetchPhotonLocation(query);
+                    if (photonMatch) return photonMatch;
+
+                    const nominatimMatch = await fetchNominatimLocation(query);
+                    if (nominatimMatch) return nominatimMatch;
                 } catch(e) { 
                     console.error(`Geocoding failed for ${query}:`, e); 
-                    if (e.name === 'AbortError') console.warn("Geocoding request timed out");
                 }
             }
             return null;
+        }
+
+        function calculateDistanceKm(start, end) {
+            const toRad = deg => deg * (Math.PI / 180);
+            const earthRadiusKm = 6371;
+            const dLat = toRad(end.lat - start.lat);
+            const dLon = toRad(end.lng - start.lng);
+            const lat1 = toRad(start.lat);
+            const lat2 = toRad(end.lat);
+
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return earthRadiusKm * c;
+        }
+
+        function clearFallbackRouteLine() {
+            if (fallbackRouteLine) {
+                map.removeLayer(fallbackRouteLine);
+                fallbackRouteLine = null;
+            }
+        }
+
+        function renderRouteSummary(distanceKm, price, approximate = false) {
+            currentDistance = `${distanceKm.toFixed(1)} km`;
+            currentRoutePrice = price;
+
+            addMsg(`<div class="bg-primary/5 -mx-4 -mt-3 p-4 rounded-t-[1.25rem] border-b border-primary/10 mb-3">
+                    <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">${isHistoryView ? 'Trip Replay' : 'Route Ready'}</p>
+                    <h4 class="text-lg font-black text-slate-900 leading-tight">${approximate ? 'Using a direct route estimate for this trip.' : (isHistoryView ? 'Here is the route from your trip history.' : 'Found the best path!')}</h4>
+                </div>
+                <div class="space-y-2 pb-1">
+                    <div class="flex justify-between items-center"><span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Distance</span><span class="text-slate-900 font-black">${currentDistance}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">${approximate ? 'Approx Fare' : 'Estimated Fare'}</span><span class="text-primary font-black text-base">₹${price}</span></div>
+                </div>`, 'bot');
+
+            syncRouteSchedulePrompt();
+            syncRouteActionButtons();
+        }
+
+        function renderFallbackRoute() {
+            removeTyping(document.getElementById('typing-indicator'));
+            clearFallbackRouteLine();
+
+            if (!pickupCoords || !dropCoords) return;
+
+            const distanceKm = calculateDistanceKm(pickupCoords, dropCoords);
+            const price = (distanceKm * 15).toFixed(2);
+
+            fallbackRouteLine = L.polyline([pickupCoords, dropCoords], {
+                color: '#FF4B4B',
+                weight: 6,
+                opacity: 0.75,
+                dashArray: '10, 10'
+            }).addTo(map);
+
+            document.getElementById('routeDetails').innerHTML = `
+                <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-md p-6 border-b border-slate-100 flex justify-between items-center shadow-sm">
+                    <div>
+                        <p class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Direct Route</p>
+                        <h4 class="font-extrabold text-slate-800 text-lg leading-tight truncate w-48">${dropLoc}</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 font-bold uppercase tracking-wider">Approximate distance preview</p>
+                    </div>
+                    <button onclick="toggleRouteDetails()" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors border border-slate-100"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-2 bg-slate-50">
+                    <div class="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <p class="text-[12px] font-bold text-slate-700 leading-relaxed">Detailed road routing is unavailable right now, so we prepared a direct trip estimate to keep your booking moving.</p>
+                    </div>
+                </div>
+            `;
+
+            map.fitBounds(L.latLngBounds([pickupCoords, dropCoords]), { padding: [100, 100] });
+            renderRouteSummary(distanceKm, price, true);
         }
 
         /**
@@ -529,9 +873,8 @@ include 'layout/header.php';
             wrapper.className = 'flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300 mb-2';
             wrapper.innerHTML = `
                 <div class="bg-transparent p-1 w-full rounded-[1.25rem] text-[13px] font-medium leading-relaxed">
-                    <div class="flex gap-3 w-full mt-2 mb-1">
-                        <button onclick="toggleRouteDetails()" class='flex-1 bg-white border border-slate-200 text-slate-700 py-3.5 rounded-xl text-[13px] font-black hover:bg-slate-50 transition-all shadow-sm'>Review Steps</button>
-                        <button onclick="openPayment('${currentRoutePrice}')" class='flex-1 bg-primary text-white py-3.5 rounded-xl text-[13px] font-black hover:bg-red-600 transition-all shadow-md hover:shadow-primary/30 hover:-translate-y-0.5'>${label}</button>
+                    <div class="w-full mt-2 mb-1">
+                        <button onclick="openPayment('${currentRoutePrice}')" class='w-full bg-primary text-white py-3.5 rounded-xl text-[13px] font-black hover:bg-red-600 transition-all shadow-md hover:shadow-primary/30 hover:-translate-y-0.5'>${label}</button>
                     </div>
                 </div>
             `;
@@ -753,6 +1096,7 @@ include 'layout/header.php';
         function calculateRoute() {
             if (routeControl) map.removeControl(routeControl);
             if (stepMarker) map.removeLayer(stepMarker);
+            clearFallbackRouteLine();
             currentRoutePrice = "";
             syncRouteSchedulePrompt();
             syncRouteActionButtons();
@@ -799,10 +1143,15 @@ include 'layout/header.php';
 
                     syncRouteActionButtons();
                     map.fitBounds(L.latLngBounds([pickupCoords, dropCoords]), { padding: [100, 100] });
+                }).on('routingerror', function(error) {
+                    console.error("Routing error:", error);
+                    removeTyping(routeTyping);
+                    renderFallbackRoute();
                 }).addTo(map);
             } catch (error) {
                 console.error("Route calculation error:", error);
                 removeTyping(routeTyping);
+                return renderFallbackRoute();
                 addMsg("⚠️ <b>Failed to calculate route.</b> Please try again.", 'bot');
             }
         }
@@ -825,6 +1174,53 @@ include 'layout/header.php';
                 el.classList.add('hidden');
             }
         }
+
+        map.on('click', async function(e) {
+            if (!isLoggedIn || isFetching) return;
+
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+
+            if (!isWithinIndia(lat, lon)) {
+                addMsg("⚠️ Please select a point within India to build your trip.", 'bot');
+                return;
+            }
+
+            isFetching = true;
+            const typing = showTyping();
+
+            try {
+                const result = await reverseGeocode(lat, lon);
+                removeTyping(typing);
+
+                if (!result) {
+                    addMsg("❌ I couldn't read that map point clearly. Please try another spot.", 'bot');
+                    return;
+                }
+
+                if (chatStep === 0 || !pickupCoords) {
+                    pickupCoords = L.latLng(result.lat, result.lon);
+                    pickupLoc = result.display;
+                    chatStep = 1;
+                    addMsg(`📍 <b>Pickup pinned:</b> ${result.display}.<br>Now select or type your destination.`, 'bot');
+                    map.setView(pickupCoords, 13);
+                } else {
+                    dropCoords = L.latLng(result.lat, result.lon);
+                    dropLoc = result.display;
+                    chatStep = 0;
+                    isHistoryView = false;
+                    applyHistoryModeContent();
+                    addMsg(`🏁 <b>Destination pinned:</b> ${result.display}.<br>Calculating your route now...`, 'bot');
+                    calculateRoute();
+                }
+            } catch (error) {
+                removeTyping(typing);
+                console.error('Map selection error:', error);
+                addMsg("⚠️ I couldn't use that map point right now. Please try again.", 'bot');
+            } finally {
+                isFetching = false;
+            }
+        });
 
         /**
          * Assistant Interface Toggle

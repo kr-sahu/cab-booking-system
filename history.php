@@ -150,12 +150,9 @@ if (!$isLoggedIn) {
                             </div>
                         </td>
                         <td class="py-5 px-6 align-middle border-b border-slate-100/60 last:border-0 text-center">
-                            <div class="flex items-center justify-center gap-2 transition-opacity duration-300">
+                            <div class="flex items-center justify-center transition-opacity duration-300">
                                 <button onclick="seeRoute('${ride.pickup_location}', '${ride.destination}')" class="inline-flex items-center gap-2 h-10 px-4 bg-slate-900 text-white rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center shadow-sm text-[11px] font-black uppercase tracking-[0.18em]" title="See Route">
                                     <i class="fas fa-map-marked-alt text-[11px]"></i> Route
-                                </button>
-                                <button onclick="bookAgain('${encodeURIComponent(ride.pickup_location)}', '${encodeURIComponent(ride.destination)}')" class="inline-flex items-center gap-2 h-10 px-4 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition-all flex items-center justify-center border border-slate-200 text-[11px] font-black uppercase tracking-[0.18em]" title="Book Again">
-                                    <i class="fas fa-redo-alt text-[10px]"></i> Repeat
                                 </button>
                             </div>
                         </td>
@@ -219,10 +216,6 @@ if (!$isLoggedIn) {
     function seeRoute(pickup, dest) {
         // Redirect to ride.php with parameters to trigger route visualization
         window.location.href = `ride.php?pickup=${encodeURIComponent(pickup)}&dest=${encodeURIComponent(dest)}&visualize=true`;
-    }
-
-    function bookAgain(pickup, dest) {
-        window.location.href = `ride.php?pickup=${pickup}&dest=${dest}`;
     }
 
     // Initialize
