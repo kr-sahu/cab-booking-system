@@ -1,17 +1,13 @@
 <?php 
-/**
- * MANAGE ACCOUNT PAGE
- * Modern two-column layout with profile sidebar and personal details form.
- */
 include 'layout/header.php'; 
 
-// Redirect if not logged in
+// Guard access for signed-in users only.
 if (!$isLoggedIn) {
     header("Location: auth.php?mode=login");
     exit();
 }
 
-// Fetch latest user data and stats
+// Load the latest profile details and summary stats.
 $u_id = $_SESSION['user_id'];
 $u_res = $conn->query("SELECT * FROM users WHERE id = $u_id");
 $user = $u_res->fetch_assoc();
@@ -22,19 +18,16 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 
 <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.12),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(248,113,113,0.12),_transparent_28%),linear-gradient(180deg,_#f8fbff_0%,_#f8fafc_100%)] py-12 px-4 md:px-8">
     <div class="max-w-7xl mx-auto">
-        <!-- Back Navigation -->
         <a href="index.php" class="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 font-bold text-xs uppercase tracking-[0.22em] mb-8 transition-colors group">
             <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i> Back
         </a>
 
         <div class="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-8 items-start">
-            <!-- LEFT SIDEBAR: Profile Card -->
             <div class="space-y-6">
                 <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-blue-900 rounded-[2rem] shadow-[0_24px_60px_-28px_rgba(15,23,42,0.8)] border border-slate-800 flex flex-col items-center pt-12 pb-10 px-8 relative text-white">
                     <div class="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10 blur-2xl"></div>
                     <div class="absolute -left-8 bottom-4 w-24 h-24 rounded-full bg-sky-400/20 blur-2xl"></div>
                     
-                    <!-- Avatar Section -->
                     <div class="relative mb-6 z-10 group" id="avatarMenuContainer">
                         <div class="w-28 h-28 rounded-full border border-white/20 shadow-xl overflow-hidden relative bg-white/10">
                             <img id="previewAvatar" src="<?= $userImage ?>" class="w-full h-full object-cover rounded-full">
@@ -46,7 +39,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                             </button>
                         </div>
 
-                        <!-- Dropdown Options -->
                         <div id="avatarOptions" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3 w-52 bg-white rounded-2xl shadow-[0_16px_40px_rgba(15,23,42,0.18)] border border-slate-100 z-50 overflow-hidden scale-95 opacity-0 transition-all duration-200 md:left-full md:top-1/2 md:ml-4 md:mt-0 md:translate-x-0 md:-translate-y-1/2">
                             <div onclick="document.getElementById('avatarInput').click()" class="px-5 py-3.5 hover:bg-slate-50 cursor-pointer text-[11px] font-bold text-slate-700 flex items-center gap-3 border-b border-slate-100 whitespace-nowrap">
                                 <i class="fas fa-images text-blue-500"></i> Change Picture
@@ -57,7 +49,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                         </div>
                     </div>
 
-                    <!-- User Info -->
                     <div class="text-center mb-8 z-10">
                         <h2 class="text-3xl font-extrabold text-white mb-1"><?= htmlspecialchars($user['fullname']) ?></h2>
                         <p class="text-sm font-medium text-slate-300 mb-4 break-all"><?= htmlspecialchars($user['email']) ?></p>
@@ -67,7 +58,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                         </div>
                     </div>
 
-                    <!-- Single Stat: Trips -->
                     <div class="w-full border-t border-white/10 pt-8 z-10">
                         <div class="text-center">
                             <p class="text-3xl font-black text-white"><?= $trips_count ?></p>
@@ -97,7 +87,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                 </div>
             </div>
 
-            <!-- RIGHT CONTENT: Edit Form -->
             <div>
                 <div class="bg-white/90 backdrop-blur rounded-[2rem] shadow-[0_16px_50px_-28px_rgba(15,23,42,0.18)] border border-white p-8 md:p-10">
                     <div class="mb-8">
@@ -111,7 +100,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                     <form id="updateAccountForm" enctype="multipart/form-data" class="space-y-8">
                         <input type="file" id="avatarInput" name="avatar" class="hidden" accept="image/*" onchange="previewFile(this)">
                         
-                        <!-- Primary Details Tray -->
                         <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6 md:p-7">
                             <div class="flex items-center justify-between gap-4 mb-6">
                                 <div>
@@ -180,7 +168,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                         </div>
                         </div>
 
-                        <!-- Security Section Row -->
                         <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6 md:p-7">
                             <div class="mb-6">
                                 <p class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Security</p>
@@ -214,7 +201,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
                         </div>
                         </div>
 
-                        <!-- Action Button -->
                         <div class="pt-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <p class="text-sm text-slate-500">Your changes are applied only after password confirmation.</p>
                             <button type="submit" class="w-full md:w-auto md:min-w-[280px] bg-slate-950 text-white h-[58px] rounded-2xl font-black text-sm uppercase tracking-[0.22em] shadow-[0_18px_40px_-18px_rgba(15,23,42,0.7)] hover:bg-blue-700 transition-all transform active:scale-[0.98] flex items-center justify-center gap-3 px-8">
@@ -229,7 +215,6 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 </div>
 
 <style>
-    /* Dropdown Animation Helper */
     #genderPanel.open {
         opacity: 1;
         visibility: visible;
@@ -238,6 +223,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 </style>
 
 <script>
+    // Avatar actions
     function previewFile(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -271,6 +257,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
         } catch(e) { console.error(e); }
     }
 
+    // Gender dropdown
     function toggleDropdown() {
         const panel = document.getElementById('genderPanel');
         const chevron = document.querySelector('#genderTrigger i');
@@ -287,20 +274,19 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
         toggleDropdown();
     }
 
-    // Close dropdowns when clicking outside
     window.addEventListener('click', (e) => {
-        // Gender Dropdown
         if (document.getElementById('genderDropdown') && !document.getElementById('genderDropdown').contains(e.target)) {
             document.getElementById('genderPanel').classList.remove('open');
             document.querySelector('#genderTrigger i').style.transform = 'rotate(0deg)';
         }
-        // Avatar Menu
+
         if (document.getElementById('avatarMenuContainer') && !document.getElementById('avatarMenuContainer').contains(e.target)) {
             const panel = document.getElementById('avatarOptions');
             panel.classList.add('hidden', 'scale-95', 'opacity-0');
         }
     });
 
+    // Password visibility
     function togglePass(btn) {
         const input = btn.parentElement.querySelector('input');
         const icon = btn.querySelector('i');
@@ -313,22 +299,22 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
         }
     }
 
+    // Phone formatting sync
     document.addEventListener('DOMContentLoaded', () => {
         const numInput = document.getElementById('numericPhone');
         const fullInput = document.getElementById('fullPhone');
         
         if (numInput) {
             numInput.addEventListener('input', function() {
-                // Extract only numbers and limit to 10
                 let numbers = this.value.replace(/\D/g, '').slice(0, 10);
                 this.value = numbers;
                 
-                // Sync with hidden input for backend
                 fullInput.value = numbers ? '+91 ' + numbers : '';
             });
         }
     });
 
+    // Profile update submission
     document.getElementById('updateAccountForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);

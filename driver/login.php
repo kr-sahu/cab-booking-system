@@ -139,6 +139,7 @@ include '../layout/header.php';
     }
 </style>
 
+<!-- Driver login -->
 <section class="driver-login-stage py-14 px-6 md:px-10 lg:px-14 min-h-screen bg-gradient-to-br from-slate-100 via-white to-rose-50 text-slate-900">
     <div class="max-w-[1320px] mx-auto grid lg:grid-cols-[0.88fr_1fr] gap-8 xl:gap-10 items-start relative z-[1]">
         <div class="driver-login-copy lg:sticky lg:top-28">
@@ -199,10 +200,12 @@ include '../layout/header.php';
 </section>
 
 <script>
+    // Shared form elements
     const loginForm = document.getElementById('driverLoginForm');
     const loginBtn = document.getElementById('driverLoginBtn');
     const loginMessage = document.getElementById('driverLoginMessage');
 
+    // Inline status messaging
     function setLoginMessage(message, type = 'error') {
         loginMessage.textContent = message;
         loginMessage.className = 'rounded-2xl border px-4 py-3 text-sm font-semibold';
@@ -216,6 +219,7 @@ include '../layout/header.php';
         loginMessage.classList.remove('hidden');
     }
 
+    // Login submission
     loginForm.addEventListener('submit', async function (event) {
         event.preventDefault();
 
