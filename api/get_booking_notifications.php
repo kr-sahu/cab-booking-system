@@ -42,7 +42,8 @@ if ($result) {
             "driver_name" => $row['driver_name'] ?: 'Assigned Driver',
             "driver_contact" => $row['driver_contact'] ?: 'N/A',
             "cab_model" => $row['cab_model'] ?: 'Assigned Cab',
-            "cab_number" => $row['cab_number'] ?: '---'
+            "cab_number" => $row['cab_number'] ?: '---',
+            "otp" => str_pad((string) ((int) $row['id'] % 10000), 4, '0', STR_PAD_LEFT)
         ];
     }
 }

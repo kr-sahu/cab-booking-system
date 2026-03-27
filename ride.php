@@ -97,7 +97,7 @@ include 'layout/header.php';
                             <div class="flex items-center gap-2">
                                 <button onclick="toggleNotificationInbox()" class="relative text-slate-400 hover:text-slate-700 transition-colors w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100" title="Booking Notifications">
                                     <i class="fas fa-bell text-[13px]"></i>
-                                    <span id="notificationBadge" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary"></span>
+                                    <span id="notificationBadge" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_0_2px_white]"></span>
                                 </button>
                                 <button onclick="toggleChat()" class="text-slate-400 hover:text-slate-700 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100"><i class="fas fa-times"></i></button>
                             </div>
@@ -580,23 +580,32 @@ include 'layout/header.php';
         }
 
         let bookingNotificationPoller = null;
-        const bookingNotificationSeenKey = 'cab_app_seen_booking_notifications';
+        const bookingNotificationReadKey = 'cab_app_read_booking_notifications';
+        const bookingNotificationShownKey = 'cab_app_shown_booking_notifications';
 
-        function getSeenBookingNotificationIds() {
+        function getStoredBookingNotificationIds(key) {
             try {
-                const parsed = JSON.parse(localStorage.getItem(bookingNotificationSeenKey) || '[]');
+                const parsed = JSON.parse(localStorage.getItem(key) || '[]');
                 return Array.isArray(parsed) ? parsed.map(id => Number(id)) : [];
             } catch (error) {
                 return [];
             }
         }
 
-        function markBookingNotificationSeen(id) {
+        function storeBookingNotificationId(key, id) {
             if (!id) return;
 
-            const seen = new Set(getSeenBookingNotificationIds());
-            seen.add(Number(id));
-            localStorage.setItem(bookingNotificationSeenKey, JSON.stringify(Array.from(seen).slice(-30)));
+            const stored = new Set(getStoredBookingNotificationIds(key));
+            stored.add(Number(id));
+            localStorage.setItem(key, JSON.stringify(Array.from(stored).slice(-30)));
+        }
+
+        function markBookingNotificationRead(id) {
+            storeBookingNotificationId(bookingNotificationReadKey, id);
+        }
+
+        function markBookingNotificationShown(id) {
+            storeBookingNotificationId(bookingNotificationShownKey, id);
         }
 
         function openAssignedDriverModal(booking) {
@@ -609,7 +618,7 @@ include 'layout/header.php';
             document.getElementById('assignedCabModel').textContent = booking.cab_model || 'Assigned Cab';
             document.getElementById('assignedCabNumber').textContent = booking.cab_number || '---';
             document.getElementById('assignedDriverContact').innerHTML = `<i class="fas fa-phone-alt text-[10px]"></i> ${booking.driver_contact || 'N/A'}`;
-            document.getElementById('bookingOTP').textContent = String(booking.id || '').padStart(4, '0').slice(-4);
+            document.getElementById('bookingOTP').textContent = booking.otp || String(booking.id || '').padStart(4, '0').slice(-4);
 
             modal.classList.remove('hidden');
         }
@@ -640,8 +649,10 @@ include 'layout/header.php';
                     return;
                 }
 
-                const seenNotificationIds = new Set(getSeenBookingNotificationIds());
-                const newestUnseenNotification = data.notifications.find(item => !seenNotificationIds.has(Number(item.id)));
+                const readNotificationIds = new Set(getStoredBookingNotificationIds(bookingNotificationReadKey));
+                const shownNotificationIds = new Set(getStoredBookingNotificationIds(bookingNotificationShownKey));
+                const newestUnreadNotification = data.notifications.find(item => !readNotificationIds.has(Number(item.id)));
+                const newestUnshownNotification = data.notifications.find(item => !shownNotificationIds.has(Number(item.id)));
 
                 box.innerHTML = data.notifications.map(item => `
                     <div class="bg-white border border-slate-200 rounded-[1.15rem] p-4 shadow-sm" data-notification-id="${item.id}">
@@ -657,23 +668,23 @@ include 'layout/header.php';
                             <p><span class="font-black text-slate-900">Contact:</span> ${item.driver_contact}</p>
                             <p><span class="font-black text-slate-900">Cab:</span> ${item.cab_model}</p>
                             <p><span class="font-black text-slate-900">Cab Number:</span> ${item.cab_number}</p>
+                            <p><span class="font-black text-slate-900">Pickup OTP:</span> ${item.otp || '0000'}</p>
                             <p><span class="font-black text-slate-900">Route:</span> ${item.pickup_location} to ${item.destination}</p>
                         </div>
                     </div>
                 `).join('');
 
                 if (badge) {
-                    if (newestUnseenNotification) {
+                    if (newestUnreadNotification) {
                         badge.classList.remove('hidden');
                     } else {
                         badge.classList.add('hidden');
                     }
                 }
 
-                if (newestUnseenNotification) {
-                    openAssignedDriverModal(newestUnseenNotification);
-                    markBookingNotificationSeen(newestUnseenNotification.id);
-                    if (badge) badge.classList.add('hidden');
+                if (newestUnshownNotification) {
+                    openAssignedDriverModal(newestUnshownNotification);
+                    markBookingNotificationShown(newestUnshownNotification.id);
                 }
             } catch (error) {
                 console.error('Notification error:', error);
@@ -696,8 +707,10 @@ include 'layout/header.php';
                 notificationView.classList.remove('hidden');
                 loadBookingNotifications().then(() => {
                     document.querySelectorAll('#notificationBox [data-notification-id]').forEach(node => {
-                        markBookingNotificationSeen(node.dataset.notificationId);
+                        markBookingNotificationRead(node.dataset.notificationId);
                     });
+                    const badge = document.getElementById('notificationBadge');
+                    if (badge) badge.classList.add('hidden');
                 });
             } else {
                 notificationView.classList.add('hidden');
