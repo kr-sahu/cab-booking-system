@@ -207,6 +207,7 @@ include '../layout/header.php';
 
     // Inline status messaging
     function setLoginMessage(message, type = 'error') {
+        // Shows validation or API feedback inside the login card.
         loginMessage.textContent = message;
         loginMessage.className = 'rounded-2xl border px-4 py-3 text-sm font-semibold';
 
@@ -221,6 +222,7 @@ include '../layout/header.php';
 
     // Login submission
     loginForm.addEventListener('submit', async function (event) {
+        // Validates credentials locally, then posts them to the driver login API.
         event.preventDefault();
 
         const email = document.getElementById('driverLoginEmail').value.trim();

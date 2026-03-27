@@ -143,6 +143,7 @@ include 'inc/sidebar.php';
         }
 
         async function fetchOrders() {
+            // Refreshes live booking data and switches the dashboard between request and trip states.
             if(driverStatus === 'offline') {
                 stopMonitoring();
                 return;
@@ -189,6 +190,7 @@ include 'inc/sidebar.php';
         }
 
         function renderOrders(orders) {
+            // Renders pending ride requests for the online driver.
             const container = document.getElementById('rideContainer');
             if(!orders || orders.length === 0) {
                 container.innerHTML = `
@@ -242,6 +244,7 @@ include 'inc/sidebar.php';
         }
 
         function renderActiveTrip(trip) {
+            // Renders the accepted trip workspace with rider details and the live route card.
             const container = document.getElementById('rideContainer');
             container.innerHTML = `
                 <div class="bg-white rounded-[3rem] border border-gray-100 shadow-xl overflow-hidden animate-in zoom-in-95 duration-500">
@@ -302,6 +305,7 @@ include 'inc/sidebar.php';
         }
 
         async function acceptRide(id) {
+            // Accepts a pending booking and reloads the dashboard state.
             const btn = event.currentTarget;
             btn.disabled = true; btn.innerText = "Processing...";
             try {
@@ -313,6 +317,7 @@ include 'inc/sidebar.php';
         }
 
         async function completeRide(id) {
+            // Marks the current trip as completed and returns the driver to available status.
             if(!confirm("Are you sure the passenger has safely reached the destination?")) return;
             try {
                 const res = await fetch('api/complete.php', { method: 'POST', body: JSON.stringify({ booking_id: id }) });
@@ -327,6 +332,7 @@ include 'inc/sidebar.php';
         }
 
         async function geocodeTripLocation(query) {
+            // Resolves trip addresses into map coordinates for the active route preview.
             const q = String(query || '').trim();
             if (!q) return null;
 
@@ -361,6 +367,7 @@ include 'inc/sidebar.php';
         }
 
         async function updateMapRoute(trip) {
+            // Rebuilds the hidden active-trip map with the rider's actual route.
             const mapEl = document.getElementById('activeMap');
             if(!mapEl) return;
             
@@ -399,12 +406,14 @@ include 'inc/sidebar.php';
         }
 
         function startMonitoring() {
+            // Starts polling for new bookings while the driver is online.
             if(checkInterval) clearInterval(checkInterval);
             fetchOrders();
             checkInterval = setInterval(fetchOrders, 4000);
         }
 
         function stopMonitoring() {
+            // Stops polling and shows the offline placeholder state.
             if(checkInterval) clearInterval(checkInterval);
             const container = document.getElementById('rideContainer');
             container.innerHTML = `

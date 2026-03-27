@@ -10,6 +10,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
 $userImage = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
 
 function normalizeUserImagePath($path) {
+    // Converts saved avatar paths into browser-safe URLs.
     $path = trim((string)$path);
     if ($path === '') {
         return '';
@@ -175,6 +176,7 @@ if ($isLoggedIn) {
 
     <script>
         function toggleProfileMenu(e) {
+            // Toggles the account dropdown in the navbar.
             e.stopPropagation();
             const dropdown = document.querySelector('.profile-dropdown');
             dropdown.classList.toggle('show');

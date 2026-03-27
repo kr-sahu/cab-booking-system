@@ -225,6 +225,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 <script>
     // Avatar actions
     function previewFile(input) {
+        // Updates the sidebar avatar preview before upload.
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -245,6 +246,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
     }
 
     async function removeProfilePicture() {
+        // Removes the current profile image and restores the default avatar.
         if(!confirm("Are you sure you want to remove your profile picture?")) return;
         try {
             const r = await fetch('api/remove_profile.php');
@@ -259,6 +261,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 
     // Gender dropdown
     function toggleDropdown() {
+        // Opens and closes the custom gender selector.
         const panel = document.getElementById('genderPanel');
         const chevron = document.querySelector('#genderTrigger i');
         panel.classList.toggle('open');
@@ -288,6 +291,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 
     // Password visibility
     function togglePass(btn) {
+        // Switches password fields between hidden and visible states.
         const input = btn.parentElement.querySelector('input');
         const icon = btn.querySelector('i');
         if (input.type === "password") {
@@ -316,6 +320,7 @@ $trips_count = $trips_res ? $trips_res->fetch_assoc()['total'] : 0;
 
     // Profile update submission
     document.getElementById('updateAccountForm').addEventListener('submit', async function(e) {
+        // Sends the edited profile fields and avatar to the account API.
         e.preventDefault();
         const formData = new FormData(this);
         const btn = this.querySelector('button[type="submit"]');

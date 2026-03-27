@@ -315,11 +315,13 @@ include '../layout/header.php';
     <script>
         // Step navigation
         function prevDriverStep() {
+            // Returns the user from the KYC step back to account creation.
             document.getElementById('driverStep2').classList.add('hidden');
             document.getElementById('driverStep1').classList.remove('hidden');
         }
 
         function continueToKyc() {
+            // Validates the account step before revealing the KYC form.
             const email = document.getElementById('driverEmail').value.trim();
             const pass = document.getElementById('driverPass').value;
 
@@ -333,6 +335,7 @@ include '../layout/header.php';
 
         // Image preview
         function updatePhotoLabelDrive(input) {
+            // Shows the selected passport photo preview inside the upload tray.
             const label = document.getElementById('photoLabelDrive');
             const preview = document.getElementById('photoPreviewDrive');
             const previewImg = document.getElementById('previewImgDrive');
@@ -350,6 +353,7 @@ include '../layout/header.php';
 
         // Custom gender dropdown
         function toggleGenderTray() {
+            // Opens and closes the custom gender options tray.
             const tray = document.getElementById('genderOptionsTray');
             if (tray.classList.contains('hidden')) {
                 tray.classList.remove('hidden');
@@ -376,6 +380,7 @@ include '../layout/header.php';
 
         // Form submission
         async function submitApplication() {
+            // Submits the driver account and KYC details to the application API.
             const btn = document.getElementById('submitDriverApp');
             const contactInput = document.getElementById('driverContact');
             const photoInput = document.getElementById('passPhotoInputDrive');

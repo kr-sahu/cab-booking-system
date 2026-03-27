@@ -68,6 +68,7 @@ if (!$isLoggedIn) {
 
     // History rendering
     async function fetchFullHistory(limit = 0) {
+        // Loads the user's ride history and rebuilds the archive table.
         currentLimit = limit;
         const container = document.getElementById('fullHistoryContainer');
 
@@ -184,6 +185,7 @@ if (!$isLoggedIn) {
 
     // Filter dropdown
     function toggleFilter() {
+        // Toggles the ride-limit dropdown in the history header.
         const panel = document.getElementById('filterPanel');
         const chevron = document.getElementById('filterChevron');
         panel.classList.toggle('open');
@@ -206,6 +208,7 @@ if (!$isLoggedIn) {
 
     // Route replay link
     function seeRoute(pickup, dest) {
+        // Reopens a past route in the ride page visualization mode.
         window.location.href = `ride.php?pickup=${encodeURIComponent(pickup)}&dest=${encodeURIComponent(dest)}&visualize=true`;
     }
 

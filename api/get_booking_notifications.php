@@ -36,6 +36,7 @@ $notifications = [];
 // Normalize confirmed and accepted rides into a single notification shape.
 if ($result) {
     while ($row = $result->fetch_assoc()) {
+        // Adds fallback display values so each notification card is always renderable.
         $notifications[] = [
             "id" => (int) $row['id'],
             "status" => $row['status'],

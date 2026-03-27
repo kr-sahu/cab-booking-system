@@ -258,6 +258,7 @@ include 'layout/header.php';
         }
 
         function applyHistoryModeContent() {
+            // Switches the page copy between normal booking mode and history replay mode.
             const pageEyebrow = document.getElementById('pageEyebrow');
             const pageHeading = document.getElementById('pageHeading');
             const pageSubheading = document.getElementById('pageSubheading');
@@ -372,6 +373,7 @@ include 'layout/header.php';
         }
 
         function getLocalGeocodeResult(q) {
+            // Provides fast built-in matches for common Indian locations and aliases.
             const normalized = normalizeLocationKey(q);
             if (!normalized) return null;
 
@@ -592,6 +594,7 @@ include 'layout/header.php';
          * Robust geocoding with multiple fallback strategies and timeout
          */
         async function geocode(q) {
+            // Resolves user-entered locations using local aliases and external geocoding fallbacks.
             const canonicalInput = resolveCanonicalLocationInput(q);
             const queries = buildGeocodeQueries(canonicalInput);
             const localMatch = getLocalGeocodeResult(canonicalInput);
@@ -666,6 +669,7 @@ include 'layout/header.php';
         }
 
         function renderFallbackRoute() {
+            // Builds an approximate route summary when live routing is unavailable.
             removeTyping(document.getElementById('typing-indicator'));
             clearFallbackRouteLine();
 
@@ -705,6 +709,7 @@ include 'layout/header.php';
          * Main chat handler for user input
          */
         async function sendMessage() {
+            // Advances the assistant flow by resolving pickup and destination messages.
             if(isFetching) return;
             const i = document.getElementById('chatInput'), m = i.value.trim();
             if(!m) return;
@@ -981,6 +986,7 @@ include 'layout/header.php';
         }
 
         async function loadBookingNotifications() {
+            // Fetches confirmed booking notifications and updates the assistant inbox state.
             const box = document.getElementById('notificationBox');
             const badge = document.getElementById('notificationBadge');
 
@@ -1079,6 +1085,7 @@ include 'layout/header.php';
          * Calculates route, displays path on map, and populates itinerary
          */
         function calculateRoute() {
+            // Calculates the live route, fare summary, and turn list for the current trip.
             if (routeControl) map.removeControl(routeControl);
             if (stepMarker) map.removeLayer(stepMarker);
             clearFallbackRouteLine();
@@ -1211,6 +1218,7 @@ include 'layout/header.php';
          */
         let isChatOpen = false;
         function toggleChat() { 
+            // Switches the right panel between the placeholder and assistant chat views.
             const chat = document.getElementById('chatInterface');
             const placeholder = document.getElementById('panelPlaceholder');
             
@@ -1234,6 +1242,7 @@ include 'layout/header.php';
          * Prepares payment modal
          */
         function openPayment(p) {
+            // Opens the payment modal after pickup schedule validation succeeds.
             if (!isLoggedIn) {
                 window.location.href = 'auth.php?mode=login';
                 return;
@@ -1289,6 +1298,7 @@ include 'layout/header.php';
          * Finalizes booking.
          */
         async function confirmBooking() {
+            // Sends the finalized trip details to the booking API after payment review.
             if (!isLoggedIn || isFetching) return;
             
             if (!pickupLoc || !dropLoc) {
@@ -1359,6 +1369,7 @@ include 'layout/header.php';
          * Loads past ride history for the user
          */
         async function loadHistory() {
+            // Loads the ride history cards shown inside the assistant bubble.
             const cont = document.getElementById('ridesContent'); 
             cont.innerHTML = '<div class="text-center py-20"><div class="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin mx-auto mb-4"></div><p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Loading History</p></div>';
             try {
@@ -1409,6 +1420,7 @@ include 'layout/header.php';
          * Displays a route from history on the map
          */
         async function viewHistoryRoute(p, d) {
+            // Replays a historical route on the map and in the assistant timeline.
             if(typeof closeBubble === 'function') closeBubble();
             isHistoryView = true;
             applyHistoryModeContent();
@@ -1431,6 +1443,7 @@ include 'layout/header.php';
          * Formats card payment inputs
          */
         function setupCardFormatting() {
+            // Keeps card number, expiry, and CVV inputs in a strict visual format.
             const cardNum = document.getElementById('cardNumber');
             const cardExp = document.getElementById('cardExpiry');
             const cardCvv = document.getElementById('cardCvv');
