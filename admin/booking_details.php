@@ -21,6 +21,9 @@ if (!$booking) {
     exit;
 }
 
+$status_value = $booking['status'] ?? 'pending';
+$normalized_status = $status_value === 'accepted' ? 'confirmed' : $status_value;
+
 // Handle Status Updates
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $new_status = $_POST['status'];
@@ -28,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cab_id = !empty($_POST['cab_id']) ? $_POST['cab_id'] : null;
     
     $old_status = $booking['status'];
+    $old_status_normalized = $old_status === 'accepted' ? 'confirmed' : $old_status;
     $old_driver_id = $booking['driver_id'];
     $old_cab_id = $booking['cab_id'];
 
@@ -36,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     try {
         // 1. Logic for confirming a ride
-        if ($new_status == 'confirmed' && $old_status == 'pending') {
+        if ($new_status == 'confirmed' && $old_status_normalized == 'pending') {
             if (!$driver_id || !$cab_id) {
                 throw new Exception("Please assign both a driver and a cab to confirm the ride.");
             }
@@ -46,14 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // 2. Logic for completing a ride
-        if ($new_status == 'completed' && $old_status == 'confirmed') {
+        if ($new_status == 'completed' && $old_status_normalized == 'confirmed') {
             // Transition: Release Driver and Cab
             $conn->query("UPDATE drivers SET status = 'available' WHERE id = $old_driver_id");
             $conn->query("UPDATE cabs SET status = 'available' WHERE id = $old_cab_id");
         }
 
         // 3. Logic for cancelling a confirmed ride
-        if ($new_status == 'cancelled' && $old_status == 'confirmed') {
+        if ($new_status == 'cancelled' && $old_status_normalized == 'confirmed') {
             // Transition: Release Driver and Cab
             $conn->query("UPDATE drivers SET status = 'available' WHERE id = $old_driver_id");
             $conn->query("UPDATE cabs SET status = 'available' WHERE id = $old_cab_id");
@@ -93,10 +97,10 @@ $cabs = $conn->query("SELECT id, reg_no, model FROM cabs WHERE status = 'availab
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <h2>Ride Details</h2>
                 <span class="badge badge-<?php 
-                    $stat = !empty($booking['status']) ? $booking['status'] : 'pending';
+                    $stat = $normalized_status;
                     echo $stat == 'completed' ? 'success' : ($stat == 'pending' ? 'warning' : ($stat == 'confirmed' ? 'primary' : 'danger')); 
                 ?>" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                    STATUS: <?php echo !empty($booking['status']) ? strtoupper($booking['status']) : 'UNKNOWN'; ?>
+                    STATUS: <?php echo !empty($normalized_status) ? strtoupper($normalized_status) : 'UNKNOWN'; ?>
                 </span>
             </div>
             
@@ -141,10 +145,10 @@ $cabs = $conn->query("SELECT id, reg_no, model FROM cabs WHERE status = 'availab
                 <div class="form-group">
                     <label>Lifecycle Status</label>
                     <select name="status" class="form-control" style="width:100%; padding:0.75rem; border-radius:0.75rem; margin-top:0.5rem;">
-                        <option value="pending" <?php echo $booking['status'] == 'pending' ? 'selected' : ''; ?>>Pending (Awaiting Action)</option>
-                        <option value="confirmed" <?php echo $booking['status'] == 'confirmed' ? 'selected' : ''; ?>>Confirmed (On Trip)</option>
-                        <option value="completed" <?php echo $booking['status'] == 'completed' ? 'selected' : ''; ?>>Completed (Mark as Done)</option>
-                        <option value="cancelled" <?php echo $booking['status'] == 'cancelled' ? 'selected' : ''; ?>>Cancelled (Reject)</option>
+                        <option value="pending" <?php echo $normalized_status == 'pending' ? 'selected' : ''; ?>>Pending (Awaiting Action)</option>
+                        <option value="confirmed" <?php echo $normalized_status == 'confirmed' ? 'selected' : ''; ?>>Confirmed (On Trip)</option>
+                        <option value="completed" <?php echo $normalized_status == 'completed' ? 'selected' : ''; ?>>Completed (Mark as Done)</option>
+                        <option value="cancelled" <?php echo $normalized_status == 'cancelled' ? 'selected' : ''; ?>>Cancelled (Reject)</option>
                     </select>
                 </div>
 
@@ -177,7 +181,7 @@ $cabs = $conn->query("SELECT id, reg_no, model FROM cabs WHERE status = 'availab
                 </button>
             </form>
             
-            <?php if($booking['status'] == 'confirmed'): ?>
+            <?php if($normalized_status == 'confirmed'): ?>
                 <div style="margin-top:1.5rem; text-align:center; padding: 1rem; border: 1px dashed var(--primary); border-radius: 1rem;">
                     <i class="fas fa-info-circle" style="color:var(--primary);"></i>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">This trip is currently <strong>Ongoing</strong>. Marking it as <strong>Completed</strong> will release the driver and cab back to the pool.</p>

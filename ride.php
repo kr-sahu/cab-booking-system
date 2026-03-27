@@ -110,8 +110,13 @@ include 'layout/header.php';
                             </div>
                             <div class="p-3 bg-white border-t border-slate-100 flex flex-col gap-2">
                                 <div class="flex gap-2">
-                                    <input type="date" id="pickupDate" value="<?php echo date('Y-m-d'); ?>" class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[12px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-slate-600">
-                                    <input type="time" id="pickupTime" value="<?php echo date('H:i'); ?>" class="w-28 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[12px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-slate-600">
+                                    <input type="date" id="pickupDate" min="<?php echo date('Y-m-d'); ?>" required class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[12px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-slate-600">
+                                    <div class="relative w-28">
+                                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[12px]">
+                                            <i class="far fa-clock"></i>
+                                        </span>
+                                        <input type="text" id="pickupTime" placeholder="00:00" inputmode="numeric" maxlength="5" required class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[12px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-slate-600 placeholder-slate-400">
+                                    </div>
                                 </div>
                                 <div class="flex gap-2 relative">
                                     <input type="text" id="chatInput" placeholder="Enter location..." class="flex-1 pl-4 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all font-medium text-slate-800 placeholder-slate-400" onkeydown="if(event.key === 'Enter') sendMessage()">
@@ -254,7 +259,7 @@ include 'layout/header.php';
 
         // Core variables for route management
         let routeControl = null, pickupCoords = null, dropCoords = null, stepMarker = null;
-        let pickupLoc = "", dropLoc = "", chatStep = 0, isHistoryView = false, currentDistance = "";
+        let pickupLoc = "", dropLoc = "", chatStep = 0, isHistoryView = false, currentDistance = "", currentRoutePrice = "";
         let isFetching = false;
         let isNotificationView = false;
 
@@ -408,6 +413,161 @@ include 'layout/header.php';
             box.scrollTop = box.scrollHeight;
         }
 
+        function formatPickupSchedule(dateValue, timeValue) {
+            const scheduleDate = new Date(`${dateValue}T${timeValue}`);
+
+            const prettyDate = scheduleDate.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+
+            const prettyTime = scheduleDate.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            return `${prettyDate} at ${prettyTime}`;
+        }
+
+        function isValidPickupTime(timeValue) {
+            return /^([01]\d|2[0-3]):([0-5]\d)$/.test(timeValue);
+        }
+
+        function syncPickupScheduleMessage() {
+            const pickupDateInput = document.getElementById('pickupDate');
+            const pickupTimeInput = document.getElementById('pickupTime');
+            const chatBox = document.getElementById('chatBox');
+
+            if (!pickupDateInput || !pickupTimeInput || !chatBox) return;
+
+            const dateValue = pickupDateInput.value;
+            const timeValue = pickupTimeInput.value;
+            const existingMessage = document.getElementById('pickupScheduleMsg');
+
+            if (!dateValue || !timeValue) {
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+                syncRouteSchedulePrompt();
+                syncRouteActionButtons();
+                return;
+            }
+
+            const scheduleText = formatPickupSchedule(dateValue, timeValue);
+            const wrapper = existingMessage || document.createElement('div');
+
+            wrapper.id = 'pickupScheduleMsg';
+            wrapper.className = 'flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300 mb-2';
+            wrapper.innerHTML = `
+                <div class="bg-white/95 backdrop-blur-md border border-slate-200 text-slate-800 rounded-[1.25rem] rounded-tl-sm shadow-sm px-4 py-3 min-w-[60px] max-w-[85%] text-[13px] font-medium leading-relaxed">
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-primary mb-1">Pickup Schedule</p>
+                    <p>Your pickup is set for <b>${scheduleText}</b>.</p>
+                </div>
+            `;
+
+            if (!existingMessage) {
+                chatBox.appendChild(wrapper);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+            syncRouteSchedulePrompt();
+            syncRouteActionButtons();
+        }
+
+        function syncRouteActionButtons() {
+            const chatBox = document.getElementById('chatBox');
+            const existingButtons = document.getElementById('routeActionButtonsMsg');
+            const selectedDate = document.getElementById('pickupDate')?.value || '';
+            const selectedTime = document.getElementById('pickupTime')?.value || '';
+
+            if (!chatBox) return;
+
+            const canShowButtons = Boolean(currentRoutePrice && selectedDate && selectedTime && isValidPickupTime(selectedTime));
+
+            if (!canShowButtons) {
+                if (existingButtons) {
+                    existingButtons.remove();
+                }
+                return;
+            }
+
+            const label = isHistoryView ? "Book Again" : "Confirm Ride";
+            const wrapper = existingButtons || document.createElement('div');
+
+            wrapper.id = 'routeActionButtonsMsg';
+            wrapper.className = 'flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300 mb-2';
+            wrapper.innerHTML = `
+                <div class="bg-transparent p-1 w-full rounded-[1.25rem] text-[13px] font-medium leading-relaxed">
+                    <div class="flex gap-3 w-full mt-2 mb-1">
+                        <button onclick="toggleRouteDetails()" class='flex-1 bg-white border border-slate-200 text-slate-700 py-3.5 rounded-xl text-[13px] font-black hover:bg-slate-50 transition-all shadow-sm'>Review Steps</button>
+                        <button onclick="openPayment('${currentRoutePrice}')" class='flex-1 bg-primary text-white py-3.5 rounded-xl text-[13px] font-black hover:bg-red-600 transition-all shadow-md hover:shadow-primary/30 hover:-translate-y-0.5'>${label}</button>
+                    </div>
+                </div>
+            `;
+
+            if (!existingButtons) {
+                chatBox.appendChild(wrapper);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function syncRouteSchedulePrompt() {
+            const chatBox = document.getElementById('chatBox');
+            const existingPrompt = document.getElementById('routeSchedulePromptMsg');
+            const selectedDate = document.getElementById('pickupDate')?.value || '';
+            const selectedTime = document.getElementById('pickupTime')?.value || '';
+
+            if (!chatBox || !currentRoutePrice) {
+                if (existingPrompt) {
+                    existingPrompt.remove();
+                }
+                return;
+            }
+
+            const needsPrompt = !selectedDate || !selectedTime || !isValidPickupTime(selectedTime);
+
+            if (!needsPrompt) {
+                if (existingPrompt) {
+                    existingPrompt.remove();
+                }
+                return;
+            }
+
+            const wrapper = existingPrompt || document.createElement('div');
+            wrapper.id = 'routeSchedulePromptMsg';
+            wrapper.className = 'flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300 mb-2';
+            wrapper.innerHTML = `
+                <div class="bg-white/95 backdrop-blur-md border border-slate-200 text-slate-800 rounded-[1.25rem] rounded-tl-sm shadow-sm px-4 py-3 min-w-[60px] max-w-[85%] text-[13px] font-medium leading-relaxed">
+                    Please select both pickup date and pickup time before confirming your booking.
+                </div>
+            `;
+
+            if (!existingPrompt) {
+                chatBox.appendChild(wrapper);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function setupPickupTimeFormatting() {
+            const pickupTimeInput = document.getElementById('pickupTime');
+
+            if (!pickupTimeInput) return;
+
+            pickupTimeInput.addEventListener('input', function () {
+                let value = this.value.replace(/\D/g, '').slice(0, 4);
+
+                if (value.length >= 3) {
+                    value = `${value.slice(0, 2)}:${value.slice(2)}`;
+                }
+
+                this.value = value;
+            });
+        }
+
         function formatNotificationTime(dateString) {
             const date = new Date(dateString);
             return date.toLocaleString('en-GB', {
@@ -497,6 +657,9 @@ include 'layout/header.php';
         function calculateRoute() {
             if (routeControl) map.removeControl(routeControl);
             if (stepMarker) map.removeLayer(stepMarker);
+            currentRoutePrice = "";
+            syncRouteSchedulePrompt();
+            syncRouteActionButtons();
             
             const routeTyping = showTyping();
             
@@ -510,6 +673,7 @@ include 'layout/header.php';
                     removeTyping(routeTyping);
                     const r = e.routes[0], dist = r.summary.totalDistance / 1000, price = (dist * 15).toFixed(2);
                     currentDistance = dist.toFixed(1) + " km";
+                    currentRoutePrice = price;
                     
                     addMsg(`<div class="bg-primary/5 -mx-4 -mt-3 p-4 rounded-t-[1.25rem] border-b border-primary/10 mb-3">
                             <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Route Ready</p>
@@ -519,6 +683,7 @@ include 'layout/header.php';
                             <div class="flex justify-between items-center"><span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Distance</span><span class="text-slate-900 font-black">${currentDistance}</span></div>
                             <div class="flex justify-between items-center"><span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Estimated Fare</span><span class="text-primary font-black text-base">₹${price}</span></div>
                         </div>`, 'bot');
+                    syncRouteSchedulePrompt();
                     
                     const header = `<div class="sticky top-0 z-10 bg-white/95 backdrop-blur-md p-6 border-b border-slate-100 flex justify-between items-center shadow-sm">
                         <div><p class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Trip Itinerary</p><h4 class="font-extrabold text-slate-800 text-lg leading-tight truncate w-48">${dropLoc}</h4><p class="text-[11px] text-slate-400 mt-1 font-bold uppercase tracking-wider">${dist.toFixed(1)} km journey</p></div>
@@ -536,12 +701,7 @@ include 'layout/header.php';
                     
                     document.getElementById('routeDetails').innerHTML = header + steps + `</div>`;
 
-                    const label = isHistoryView ? "Book Again" : "Confirm Ride";
-                    const btns = `<div class="flex gap-3 w-full mt-2 mb-1">
-                        <button onclick="toggleRouteDetails()" class='flex-1 bg-white border border-slate-200 text-slate-700 py-3.5 rounded-xl text-[13px] font-black hover:bg-slate-50 transition-all shadow-sm'>Review Steps</button>
-                        <button onclick="openPayment('${price}')" class='flex-1 bg-primary text-white py-3.5 rounded-xl text-[13px] font-black hover:bg-red-600 transition-all shadow-md hover:shadow-primary/30 hover:-translate-y-0.5'>${label}</button>
-                    </div>`;
-                    addMsg(btns, 'bot');
+                    syncRouteActionButtons();
                     map.fitBounds(L.latLngBounds([pickupCoords, dropCoords]), { padding: [100, 100] });
                 }).addTo(map);
             } catch (error) {
@@ -602,6 +762,27 @@ include 'layout/header.php';
                 window.location.href = 'auth.php?mode=login';
                 return;
             }
+
+            const selectedDate = document.getElementById('pickupDate').value;
+            const selectedTime = document.getElementById('pickupTime').value;
+
+            if (!selectedDate || !selectedTime) {
+                addMsg("⚠️ Please select both pickup date and pickup time before confirming your booking.", 'bot');
+                if (!selectedDate) {
+                    document.getElementById('pickupDate').focus();
+                } else {
+                    document.getElementById('pickupTime').focus();
+                }
+                return;
+            }
+
+            if (!isValidPickupTime(selectedTime)) {
+                addMsg("⚠️ Please enter pickup time in HH:MM format, for example 00:00 or 14:30.", 'bot');
+                document.getElementById('pickupTime').focus();
+                return;
+            }
+
+            syncPickupScheduleMessage();
             document.getElementById('finalPrice').innerText = "₹" + p;
             selectPayment('cash');
             document.getElementById('paymentModal').classList.remove('hidden');
@@ -644,6 +825,24 @@ include 'layout/header.php';
             const p = document.getElementById('finalPrice').innerText.replace('₹', '');
             const selectedDate = document.getElementById('pickupDate').value;
             const selectedTime = document.getElementById('pickupTime').value;
+
+            if (!selectedDate || !selectedTime) {
+                isFetching = false;
+                closePayment();
+                addMsg("⚠️ Pickup date and pickup time are mandatory before booking. Please select both and try again.", 'bot');
+                return;
+            }
+
+            if (!isValidPickupTime(selectedTime)) {
+                isFetching = false;
+                closePayment();
+                addMsg("⚠️ Pickup time must be in HH:MM format, for example 00:00 or 14:30.", 'bot');
+                document.getElementById('pickupTime').focus();
+                return;
+            }
+
+            syncPickupScheduleMessage();
+            const scheduleText = formatPickupSchedule(selectedDate, selectedTime);
             
             const typing = showTyping();
             try {
@@ -667,7 +866,7 @@ include 'layout/header.php';
                             <h4 class="text-base font-black text-slate-900 leading-tight">Your request is sent!</h4>
                         </div>
                         <p class="text-[13px] font-medium text-slate-600 leading-relaxed">
-                            Your ride is currently <b>pending approval</b>. We'll notify you as soon as a driver is assigned.
+                            Your ride is currently <b>pending approval</b>. Pickup is scheduled for <b>${scheduleText}</b>. We'll notify you as soon as a driver is assigned.
                         </p>`, 'bot'); 
                 } else {
                     addMsg("❌ <b>Oops!</b> " + (res.message || "Something went wrong with the booking."), 'bot');
@@ -793,6 +992,9 @@ include 'layout/header.php';
         window.addEventListener('DOMContentLoaded', () => {
             clearPersistedChat();
             setupCardFormatting();
+            setupPickupTimeFormatting();
+            document.getElementById('pickupDate')?.addEventListener('change', syncPickupScheduleMessage);
+            document.getElementById('pickupTime')?.addEventListener('change', syncPickupScheduleMessage);
             
             const params = new URLSearchParams(window.location.search);
             if(params.get('pickup')) pickupLoc = decodeURIComponent(params.get('pickup'));

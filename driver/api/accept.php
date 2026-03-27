@@ -16,7 +16,7 @@ if (!$bookingId) {
 }
 
 // 1. Check if driver is already on a trip
-$checkTrip = $conn->query("SELECT id FROM bookings WHERE driver_id = '$driverId' AND status = 'accepted'");
+$checkTrip = $conn->query("SELECT id FROM bookings WHERE driver_id = '$driverId' AND status IN ('accepted', 'confirmed')");
 if ($checkTrip->num_rows > 0) {
     die(json_encode(["success" => false, "message" => "You already have an active trip."]));
 }
@@ -60,7 +60,7 @@ $sql = "UPDATE bookings SET
         driver_contact = '$contact',
         cab_model = '$cab_model',
         cab_number = '$cab_number',
-        status = 'accepted' 
+        status = 'confirmed' 
         WHERE id = '$bookingId'";
 
 if ($conn->query($sql)) {

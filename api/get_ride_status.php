@@ -16,7 +16,7 @@ $result = $conn->query($sql);
 if ($result && $result->num_rows > 0) {
     $booking = $result->fetch_assoc();
     
-    // DEMO SIMULATION: If the ride is pending, simulate a driver acceptance event
+    // DEMO SIMULATION: If the ride is pending, simulate a driver confirmation event
     if ($booking['status'] === 'pending') {
         // Pool of iconic simulated drivers for the demonstration experience
         $drivers = [
@@ -30,15 +30,15 @@ if ($result && $result->num_rows > 0) {
         $dCar = $driver['car'];
         $dPlate = $driver['plate'];
         
-        // Update the booking status in the DB to reflect that a driver has "accepted"
-        $updateSql = "UPDATE bookings SET status = 'accepted' WHERE id = $bookingId";
+        // Update the booking status in the DB to reflect that a driver is confirmed and on trip
+        $updateSql = "UPDATE bookings SET status = 'confirmed' WHERE id = $bookingId";
         $conn->query($updateSql);
         
         // Return simulated real-time driver data including mock GPS coordinates
         echo json_encode([
             "success" => true,
             "data" => [
-                "status" => "accepted",
+                "status" => "confirmed",
                 "name" => $dName,
                 "car_model" => $dCar,
                 "license_plate" => $dPlate,
