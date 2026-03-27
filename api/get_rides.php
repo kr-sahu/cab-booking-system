@@ -1,15 +1,13 @@
 <?php
 header('Content-Type: application/json');
 require 'db_connect.php';
-// Re-initialize session to access authenticated user context
 session_start();
 
-// Authorization Guard: Check if a user is currently logged in
+// Guard access for signed-in users only.
 if (!isset($_SESSION['user_id'])) {
     die(json_encode(["success" => false, "message" => "Unauthorized"]));
 }
 
-// Fetch ride historical data for the logged-in user, ordered by most recent
 $userId = $_SESSION['user_id'];
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 0;
 $limitSql = $limit > 0 ? " LIMIT $limit" : "";
@@ -32,7 +30,7 @@ $sql = "SELECT id,
 $result = $conn->query($sql);
 $rides = [];
 
-// Aggregate query results into an associative array for JSON output
+// Build the ride response list in query order.
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $rides[] = $row;

@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 require '../../api/db_connect.php';
 session_start();
 
+// Guard access for signed-in drivers only.
 if (!isset($_SESSION['driver_id'])) {
     die(json_encode(["success" => false, "message" => "Unauthorized"]));
 }
@@ -15,13 +16,13 @@ if (!$bookingId) {
     die(json_encode(["success" => false, "message" => "Booking ID is required"]));
 }
 
-// 1. Check if driver is already on a trip
+// Ensure the driver does not already have an active ride.
 $checkTrip = $conn->query("SELECT id FROM bookings WHERE driver_id = '$driverId' AND status IN ('accepted', 'confirmed')");
 if ($checkTrip->num_rows > 0) {
     die(json_encode(["success" => false, "message" => "You already have an active trip."]));
 }
 
-// 2. Fetch driver and assigned cab details
+// Load the driver and the cab currently assigned to them.
 $driverRes = $conn->query("SELECT * FROM drivers WHERE id = '$driverId'");
 $driver = $driverRes->fetch_assoc();
 
@@ -50,6 +51,7 @@ $contact = $conn->real_escape_string($driver['contact']);
 try {
     $conn->begin_transaction();
 
+    // Lock the booking row before transitioning it to confirmed.
     $checkBooking = $conn->query("SELECT status FROM bookings WHERE id = '$bookingId' FOR UPDATE");
     $bRow = $checkBooking ? $checkBooking->fetch_assoc() : null;
 
