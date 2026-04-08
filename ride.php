@@ -1030,9 +1030,8 @@ include 'layout/header.php';
             }
         }
 
-        async function loadBookingNotifications(options = {}) {
+        async function loadBookingNotifications() {
             // Fetches confirmed booking notifications and updates the assistant inbox state.
-            const { autoPreviewLatest = false } = options;
             const box = document.getElementById('notificationBox');
             const badge = document.getElementById('notificationBadge');
 
@@ -1091,8 +1090,6 @@ include 'layout/header.php';
 
                 if (activeNotificationRouteId !== null) {
                     setActiveNotificationCard(activeNotificationRouteId);
-                } else if (autoPreviewLatest && data.notifications[0]) {
-                    previewBookingNotificationRoute(data.notifications[0]);
                 }
 
                 if (badge) {
@@ -1126,7 +1123,7 @@ include 'layout/header.php';
             if (isNotificationView) {
                 chatView.classList.add('hidden');
                 notificationView.classList.remove('hidden');
-                loadBookingNotifications({ autoPreviewLatest: true }).then(() => {
+                loadBookingNotifications().then(() => {
                     document.querySelectorAll('#notificationBox [data-notification-id]').forEach(node => {
                         markBookingNotificationRead(node.dataset.notificationId);
                     });
