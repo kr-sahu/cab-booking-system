@@ -676,7 +676,7 @@ include 'layout/header.php';
             if (!pickupCoords || !dropCoords) return;
 
             const distanceKm = calculateDistanceKm(pickupCoords, dropCoords);
-            const price = (distanceKm * 15).toFixed(2);
+            const price = (distanceKm * 10).toFixed(2);
 
             fallbackRouteLine = L.polyline([pickupCoords, dropCoords], {
                 color: '#FF4B4B',
@@ -1103,7 +1103,7 @@ include 'layout/header.php';
                     show: false, addWaypoints: false, fitSelectedRoutes: true
                 }).on('routesfound', function(e) {
                     removeTyping(routeTyping);
-                    const r = e.routes[0], dist = r.summary.totalDistance / 1000, price = (dist * 15).toFixed(2);
+                    const r = e.routes[0], dist = r.summary.totalDistance / 1000, price = (dist * 10).toFixed(2);
                     currentDistance = dist.toFixed(1) + " km";
                     currentRoutePrice = price;
                     

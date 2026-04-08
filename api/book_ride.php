@@ -34,7 +34,7 @@ if ($data) {
         die(json_encode(["success" => false, "message" => "Trip distance must be greater than zero."]));
     }
 
-    $fareValue = round($distanceKm * 15, 2);
+    $fareValue = round($distanceKm * 10, 2);
     $fare = number_format($fareValue, 2, '.', '');
     $distance = $conn->real_escape_string(number_format($distanceKm, 1, '.', '') . ' km');
     
