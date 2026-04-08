@@ -105,6 +105,7 @@ include '../layout/header.php';
         padding: 1px;
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(244, 63, 94, 0.08));
         -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
         pointer-events: none;
