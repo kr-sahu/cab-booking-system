@@ -169,6 +169,7 @@ include 'layout/header.php';
                         <input type="text" id="cardExpiry" placeholder="MM/YY" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-[13px] outline-none focus:border-primary font-medium text-slate-700" maxlength="5">
                         <input type="text" id="cardCvv" placeholder="CVV" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-[13px] outline-none focus:border-primary font-medium text-slate-700" maxlength="3">
                     </div>
+                    <p id="cardValidationMessage" class="hidden text-[11px] font-bold text-red-500 leading-relaxed"></p>
                 </div>
             </div>
             <div class="border-t border-slate-100 pt-6">
@@ -176,7 +177,7 @@ include 'layout/header.php';
                     <span class="text-slate-500 font-bold uppercase tracking-widest text-[11px]">Estimated Fare</span>
                     <span id="finalPrice" class="text-2xl font-black text-slate-900">₹0.00</span>
                 </div>
-                <button onclick="confirmBooking()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-[15px] shadow-md hover:bg-slate-900 transition-colors">Book Now</button>
+                <button id="confirmBookingBtn" onclick="confirmBooking()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-[15px] shadow-md hover:bg-slate-900 transition-colors">Book Now</button>
             </div>
         </div>
     </div>
@@ -246,6 +247,7 @@ include 'layout/header.php';
         let routeControl = null, pickupCoords = null, dropCoords = null, stepMarker = null, fallbackRouteLine = null;
         let pickupLoc = "", dropLoc = "", chatStep = 0, isHistoryView = false, currentDistance = "", currentRoutePrice = "";
         let isFetching = false;
+        let selectedPaymentMethod = 'cash';
         let isNotificationView = false;
 
         /**
@@ -1277,17 +1279,92 @@ include 'layout/header.php';
             selectPayment('cash');
             document.getElementById('paymentModal').classList.remove('hidden');
         }
+
+        function getCardFieldElements() {
+            return {
+                number: document.getElementById('cardNumber'),
+                expiry: document.getElementById('cardExpiry'),
+                cvv: document.getElementById('cardCvv'),
+                message: document.getElementById('cardValidationMessage')
+            };
+        }
+
+        function clearCardValidationState() {
+            const { number, expiry, cvv, message } = getCardFieldElements();
+            [number, expiry, cvv].forEach(field => {
+                if (!field) return;
+                field.classList.remove('border-red-400', 'focus:border-red-400');
+                field.classList.add('border-slate-200');
+            });
+
+            if (message) {
+                message.textContent = '';
+                message.classList.add('hidden');
+            }
+        }
+
+        function setCardFieldInvalid(field, message) {
+            if (field) {
+                field.classList.remove('border-slate-200');
+                field.classList.add('border-red-400', 'focus:border-red-400');
+            }
+
+            const messageNode = document.getElementById('cardValidationMessage');
+            if (messageNode) {
+                messageNode.textContent = message;
+                messageNode.classList.remove('hidden');
+            }
+        }
+
+        function isCardPaymentValid(showErrors = false) {
+            const { number, expiry, cvv } = getCardFieldElements();
+            const cardNumber = (number?.value || '').replace(/\s/g, '');
+            const cardExpiry = (expiry?.value || '').trim();
+            const cardCvv = (cvv?.value || '').trim();
+
+            clearCardValidationState();
+
+            if (cardNumber.length !== 12 && cardNumber.length !== 16) {
+                if (showErrors) setCardFieldInvalid(number, 'Enter a valid card number before booking your ride.');
+                return false;
+            }
+
+            if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
+                if (showErrors) setCardFieldInvalid(expiry, 'Enter card expiry in MM/YY format.');
+                return false;
+            }
+
+            if (!/^\d{3}$/.test(cardCvv)) {
+                if (showErrors) setCardFieldInvalid(cvv, 'Enter a valid 3-digit CVV.');
+                return false;
+            }
+
+            return true;
+        }
+
+        function syncConfirmBookingButtonState() {
+            const button = document.getElementById('confirmBookingBtn');
+            if (!button) return;
+
+            const shouldDisable = selectedPaymentMethod === 'card' && !isCardPaymentValid(false);
+            button.disabled = shouldDisable;
+            button.className = shouldDisable
+                ? "w-full bg-slate-300 text-slate-500 py-4 rounded-xl font-bold text-[15px] shadow-md cursor-not-allowed transition-colors"
+                : "w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-[15px] shadow-md hover:bg-slate-900 transition-colors";
+        }
         
         function selectPayment(type) {
             const casBtn = document.getElementById('payCashBtn'), crdBtn = document.getElementById('payCardBtn');
             const casChk = document.getElementById('cashCheck'), crdChk = document.getElementById('cardCheck');
             const cardF = document.getElementById('cardFields');
+            selectedPaymentMethod = type;
             if(type === 'cash') {
                 casBtn.className = "bg-primary/5 border-2 border-primary shadow-sm p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all";
                 crdBtn.className = "bg-white border border-slate-200 shadow-sm p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-slate-300 transition-all";
                 casChk.className = "text-primary text-xl"; casChk.innerHTML = '<i class="fas fa-check-circle"></i>';
                 crdChk.className = "text-slate-200 text-xl"; crdChk.innerHTML = '<i class="far fa-circle"></i>';
                 cardF.classList.add('hidden');
+                clearCardValidationState();
             } else {
                 crdBtn.className = "bg-primary/5 border-2 border-primary shadow-sm p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all";
                 casBtn.className = "bg-white border border-slate-200 shadow-sm p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-slate-300 transition-all";
@@ -1295,6 +1372,7 @@ include 'layout/header.php';
                 casChk.className = "text-slate-200 text-xl"; casChk.innerHTML = '<i class="far fa-circle"></i>';
                 cardF.classList.remove('hidden');
             }
+            syncConfirmBookingButtonState();
         }
 
         function closePayment() { document.getElementById('paymentModal').classList.add('hidden'); }
@@ -1334,6 +1412,14 @@ include 'layout/header.php';
 
             syncPickupScheduleMessage();
             const scheduleText = formatPickupSchedule(selectedDate, selectedTime);
+
+            if (selectedPaymentMethod === 'card' && !isCardPaymentValid(true)) {
+                isFetching = false;
+                const { number, expiry, cvv } = getCardFieldElements();
+                const firstInvalidField = [number, expiry, cvv].find(field => field && field.classList.contains('border-red-400'));
+                firstInvalidField?.focus();
+                return;
+            }
             
             const typing = showTyping();
             try {
@@ -1458,6 +1544,8 @@ include 'layout/header.php';
                     let v = this.value.replace(/\D/g, '').substring(0, 16);
                     v = v.match(/.{1,4}/g)?.join(' ') || v;
                     this.value = v;
+                    clearCardValidationState();
+                    syncConfirmBookingButtonState();
                 };
             }
 
@@ -1474,12 +1562,16 @@ include 'layout/header.php';
                     }
                     if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
                     this.value = v;
+                    clearCardValidationState();
+                    syncConfirmBookingButtonState();
                 };
             }
 
             if(cardCvv) {
                 cardCvv.oninput = function(e) {
                     this.value = this.value.replace(/\D/g, '').substring(0, 3);
+                    clearCardValidationState();
+                    syncConfirmBookingButtonState();
                 };
             }
         }
