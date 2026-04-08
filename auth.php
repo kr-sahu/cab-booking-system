@@ -220,7 +220,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </main>
 
     <footer class="p-6 text-center text-slate-500 text-[10px] uppercase tracking-widest font-bold">
-        &copy; 2026 Zuber. Developed by Project Team<br><span class="mt-1.5 block text-slate-400">Krushna &bull; Prasanya &bull; Sruti &bull; Trupti</span>
+        &copy; 2026 Zuber. Developed by Project Team
     </footer>
 
     <!-- CLIENT-SIDE LOGIC: Toggles between Login and Signup form visibility -->
