@@ -944,6 +944,7 @@ include 'layout/header.php';
         }
 
         let bookingNotificationPoller = null;
+        let activeNotificationRouteId = null;
         const bookingNotificationReadKey = 'cab_app_read_booking_notifications';
         const bookingNotificationShownKey = 'cab_app_shown_booking_notifications';
 
@@ -987,8 +988,51 @@ include 'layout/header.php';
             modal.classList.remove('hidden');
         }
 
-        async function loadBookingNotifications() {
+        function setActiveNotificationCard(notificationId) {
+            activeNotificationRouteId = notificationId !== null ? Number(notificationId) : null;
+
+            document.querySelectorAll('#notificationBox [data-notification-id]').forEach(card => {
+                const isActive = Number(card.dataset.notificationId) === activeNotificationRouteId;
+                card.classList.toggle('border-primary', isActive);
+                card.classList.toggle('shadow-lg', isActive);
+                card.classList.toggle('shadow-primary/10', isActive);
+                card.classList.toggle('ring-2', isActive);
+                card.classList.toggle('ring-primary/10', isActive);
+                card.classList.toggle('bg-primary/[0.02]', isActive);
+            });
+        }
+
+        async function previewBookingNotificationRoute(notification) {
+            if (!notification?.pickup_location || !notification?.destination) return;
+
+            setActiveNotificationCard(notification.id);
+            markBookingNotificationRead(notification.id);
+
+            if (typeof closeBubble === 'function') closeBubble();
+            isHistoryView = true;
+            applyHistoryModeContent();
+            pickupLoc = notification.pickup_location;
+            dropLoc = notification.destination;
+
+            addMsg(`Showing the approved trip route from <b>${pickupLoc.split(',')[0]}</b> to <b>${dropLoc.split(',')[0]}</b> on the map.`, 'bot');
+
+            const routeTyping = showTyping();
+            const pickupResult = await geocode(pickupLoc);
+            const dropResult = await geocode(dropLoc);
+            removeTyping(routeTyping);
+
+            if (pickupResult && dropResult) {
+                pickupCoords = L.latLng(pickupResult.lat, pickupResult.lon);
+                dropCoords = L.latLng(dropResult.lat, dropResult.lon);
+                calculateRoute();
+            } else {
+                addMsg("❌ I couldn't map this approved trip right now. Please try the notification again in a moment.", 'bot');
+            }
+        }
+
+        async function loadBookingNotifications(options = {}) {
             // Fetches confirmed booking notifications and updates the assistant inbox state.
+            const { autoPreviewLatest = false } = options;
             const box = document.getElementById('notificationBox');
             const badge = document.getElementById('notificationBadge');
 
@@ -1020,7 +1064,7 @@ include 'layout/header.php';
                 const newestUnshownNotification = data.notifications.find(item => !shownNotificationIds.has(Number(item.id)));
 
                 box.innerHTML = data.notifications.map(item => `
-                    <div class="bg-white border border-slate-200 rounded-[1.15rem] p-4 shadow-sm" data-notification-id="${item.id}">
+                    <div class="bg-white border border-slate-200 rounded-[1.15rem] p-4 shadow-sm cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md" data-notification-id="${item.id}">
                         <div class="flex items-center justify-between gap-3 mb-3">
                             <div class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -1038,6 +1082,18 @@ include 'layout/header.php';
                         </div>
                     </div>
                 `).join('');
+
+                const notificationCards = box.querySelectorAll('[data-notification-id]');
+                notificationCards.forEach((node, index) => {
+                    const notification = data.notifications[index];
+                    node.addEventListener('click', () => previewBookingNotificationRoute(notification));
+                });
+
+                if (activeNotificationRouteId !== null) {
+                    setActiveNotificationCard(activeNotificationRouteId);
+                } else if (autoPreviewLatest && data.notifications[0]) {
+                    previewBookingNotificationRoute(data.notifications[0]);
+                }
 
                 if (badge) {
                     if (newestUnreadNotification) {
@@ -1070,7 +1126,7 @@ include 'layout/header.php';
             if (isNotificationView) {
                 chatView.classList.add('hidden');
                 notificationView.classList.remove('hidden');
-                loadBookingNotifications().then(() => {
+                loadBookingNotifications({ autoPreviewLatest: true }).then(() => {
                     document.querySelectorAll('#notificationBox [data-notification-id]').forEach(node => {
                         markBookingNotificationRead(node.dataset.notificationId);
                     });
