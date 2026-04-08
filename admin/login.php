@@ -70,26 +70,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body class="login-body">
     <div class="login-container">
-        <div class="login-header">
-            <h1>Admin Panel</h1>
-            <p>Welcome back! Please login to your account.</p>
+        <div class="login-panel">
+            <div class="login-aside">
+                <span class="login-badge">Control Center</span>
+                <h1>Admin Panel</h1>
+                <p>Manage bookings, users, and daily operations from one secure place.</p>
+            </div>
+
+            <div class="login-form-area">
+                <div class="login-header">
+                    <h2>Welcome back</h2>
+                    <p>Please login to your account.</p>
+                </div>
+
+                <?php if ($error): ?>
+                    <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
+
+                <form action="" method="POST">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Enter admin username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="login-btn">Sign In</button>
+                </form>
+            </div>
         </div>
-
-        <?php if ($error): ?>
-            <div class="alert alert-danger"><?php echo $error; ?></div>
-        <?php endif; ?>
-
-        <form action="" method="POST">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter admin username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter password" required>
-            </div>
-            <button type="submit" class="login-btn">Sign In</button>
-        </form>
     </div>
 </body>
 </html>
